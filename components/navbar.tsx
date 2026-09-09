@@ -25,6 +25,7 @@ import {
   ChevronRight,
   ShieldCheck,
   Calculator,
+  Leaf,
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -66,6 +67,11 @@ export default function Navbar() {
       href: '/profit-calculator', 
       label: language === 'mr' ? 'नफा कॅल्क्युलेटर' : language === 'hi' ? 'मुनाफा कैलकुलेटर' : 'Profit Calculator', 
       icon: Calculator 
+    },
+    { 
+      href: '/crop-lens', 
+      label: language === 'mr' ? 'पीक रोग लेन्स' : language === 'hi' ? 'फसल रोग लेंस' : 'Crop Disease Lens', 
+      icon: Leaf 
     },
     { href: '/farmer/produce/new', label: t.sellProduce, icon: Sprout },
     { href: user?.role === 'FARMER' ? '/farmer/orders' : '/buyer/orders', label: t.orders, icon: Package },

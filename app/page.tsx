@@ -354,10 +354,18 @@ export default function HomePage() {
 
                 <Link
                   href="/profit-calculator"
-                  className="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-stone-950 font-black px-6 py-3.5 rounded-xl shadow-md transition hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
+                  className="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-stone-950 font-black px-5 py-3.5 rounded-xl shadow-md transition hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
                 >
                   <TrendingUp className="w-4 h-4 text-stone-950" />
                   <span>{language === 'mr' ? '💰 नफा कॅल्क्युलेटर' : language === 'hi' ? '💰 मुनाफा कैलकुलेटर' : '💰 Profit Calculator'}</span>
+                </Link>
+
+                <Link
+                  href="/crop-lens"
+                  className="w-full sm:w-auto bg-teal-600 hover:bg-teal-500 text-white font-black px-5 py-3.5 rounded-xl shadow-md transition hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
+                >
+                  <Leaf className="w-4 h-4 text-white" />
+                  <span>{language === 'mr' ? '🌿 पीक रोग लेन्स' : language === 'hi' ? '🌿 फसल रोग लेंस' : '🌿 Crop Disease Lens'}</span>
                 </Link>
               </div>
 
