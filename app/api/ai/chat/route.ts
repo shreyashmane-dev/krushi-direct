@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     const apiKey =
       process.env.AI_API_KEY ||
       process.env.GEMINI_API_KEY ||
-      'AQ.Ab8RN6J84xKxJkfqM11GFZM4Qb_dDWAa60Yyb8YMgrH8byswJQ';
+      '';
 
     // 1. Google Gemini Provider (Live Cloud API via gemini-3.6-flash)
     if (provider === 'gemini' && apiKey) {
