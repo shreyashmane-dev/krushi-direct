@@ -24,13 +24,14 @@ import {
   X,
   ChevronRight,
   ShieldCheck,
+  Calculator,
 } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, switchUser, logout } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [unreadCount, setUnreadCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showDemoMenu, setShowDemoMenu] = useState(false);
@@ -61,6 +62,11 @@ export default function Navbar() {
   const navLinks = [
     { href: '/', label: t.home, icon: Home, exact: true },
     { href: '/marketplace', label: t.marketplace, icon: ShoppingBag },
+    { 
+      href: '/profit-calculator', 
+      label: language === 'mr' ? 'नफा कॅल्क्युलेटर' : language === 'hi' ? 'मुनाफा कैलकुलेटर' : 'Profit Calculator', 
+      icon: Calculator 
+    },
     { href: '/farmer/produce/new', label: t.sellProduce, icon: Sprout },
     { href: user?.role === 'FARMER' ? '/farmer/orders' : '/buyer/orders', label: t.orders, icon: Package },
     { href: '/farmer/insights', label: t.priceTrends, icon: TrendingUp },

@@ -333,11 +333,11 @@ export default function HomePage() {
                 {t.heroSubheadline}
               </p>
 
-              {/* Dual Primary Actions */}
+              {/* Primary Actions */}
               <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
                 <Link
                   href="/marketplace"
-                  className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-7 py-3.5 rounded-xl shadow-sm transition hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
+                  className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3.5 rounded-xl shadow-sm transition hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
                 >
                   <ShoppingBag className="w-4 h-4" />
                   <span>{t.browseProduce}</span>
@@ -346,10 +346,18 @@ export default function HomePage() {
 
                 <Link
                   href="/farmer/produce/new"
-                  className="w-full sm:w-auto bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold px-7 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 transition hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
+                  className="w-full sm:w-auto bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold px-6 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 transition hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
                 >
                   <Sprout className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <span>{t.sellHarvest}</span>
+                </Link>
+
+                <Link
+                  href="/profit-calculator"
+                  className="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-stone-950 font-black px-6 py-3.5 rounded-xl shadow-md transition hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
+                >
+                  <TrendingUp className="w-4 h-4 text-stone-950" />
+                  <span>{language === 'mr' ? '💰 नफा कॅल्क्युलेटर' : language === 'hi' ? '💰 मुनाफा कैलकुलेटर' : '💰 Profit Calculator'}</span>
                 </Link>
               </div>
 
