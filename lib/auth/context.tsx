@@ -96,13 +96,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const switchUser = async (demoUserId: string): Promise<boolean> => {
+  const switchUser = async (demoUserId: string | any): Promise<boolean> => {
+    const id = typeof demoUserId === 'object' ? demoUserId?.id : demoUserId;
     setIsLoading(true);
     try {
       const res = await fetch('/api/auth/demo-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: demoUserId }),
+        body: JSON.stringify({ userId: id }),
       });
       if (res.ok) {
         const data = await res.json();

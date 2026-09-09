@@ -6,7 +6,8 @@ import { DEMO_ACCOUNTS } from '@/lib/auth/demo-users';
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await req.json();
+    const body = await req.json();
+    const userId = typeof body?.userId === 'object' ? body.userId?.id : body?.userId;
 
     let user = await prisma.user.findUnique({
       where: { id: userId },

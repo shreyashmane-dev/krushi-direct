@@ -107,7 +107,7 @@ export default function AiChatModal() {
         throw new Error('API response failed');
       }
     } catch (err) {
-      console.error('Chat error:', err);
+      console.warn('Chat request interrupted:', err);
       const errorMessage: Message = {
         id: `err-${Date.now()}`,
         role: 'assistant',

@@ -47,11 +47,10 @@ export default function DeliveryMap({
 
     async function initOpenStreetMap() {
       if (typeof window === 'undefined' || !mapContainerRef.current) return;
-
-      // Import Leaflet dynamically to avoid SSR issues
-      const L = (await import('leaflet')).default;
-
-      if (!isMounted || !mapContainerRef.current) return;
+      try {
+        // Import Leaflet dynamically to avoid SSR issues
+        const L = (await import('leaflet')).default;
+        if (!isMounted || !mapContainerRef.current) return;
 
       // Cleanup existing map instance if any
       if (mapInstanceRef.current) {
@@ -159,6 +158,9 @@ export default function DeliveryMap({
       // Auto-fit bounds without animation to eliminate dangling zoom transitions
       map.fitBounds(polyline.getBounds(), { padding: [40, 40], animate: false });
       setMapLoaded(true);
+      } catch (err) {
+        console.warn('Delivery map init skipped:', err);
+      }
     }
 
     initOpenStreetMap();

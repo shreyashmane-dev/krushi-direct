@@ -1,4 +1,5 @@
-const CACHE_NAME = 'kisandirect-cache-v1';
+// KisanDirect Resilient Service Worker v2
+const CACHE_NAME = 'kisandirect-cache-v2';
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE_ASSETS = [
@@ -14,7 +15,9 @@ const PRECACHE_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS);
+      return cache.addAll(PRECACHE_ASSETS).catch((err) => {
+        console.warn('[SW] Precache failed:', err);
+      });
     })
   );
   self.skipWaiting();
@@ -36,39 +39,52 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: Network-first for HTML navigation, Cache-first for static assets
+// Fetch: Smart caching with guaranteed Response objects
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // Skip non-GET or cross-origin requests
-  if (request.method !== 'GET' || !url.protocol.startsWith('http')) {
+  // 1. Skip non-GET or cross-origin requests entirely (let browser handle natively)
+  if (request.method !== 'GET' || url.origin !== self.location.origin) {
     return;
   }
 
-  // 1. Navigation requests (HTML pages)
+  // 2. Skip API calls, HMR, Next.js dev server chunks, and invalid URLs
+  if (
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/_next/webpack-hmr') ||
+    url.pathname.includes('undefined')
+  ) {
+    return;
+  }
+
+  // 3. Navigation requests (HTML pages)
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then((networkResponse) => {
-          // Cache successful navigation page
-          if (networkResponse.status === 200) {
+          if (networkResponse && networkResponse.status === 200) {
             const copy = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
           }
           return networkResponse;
         })
         .catch(async () => {
-          // Offline fallback
           const cachedResponse = await caches.match(request);
           if (cachedResponse) return cachedResponse;
-          return caches.match(OFFLINE_URL);
+          const offlineFallback = await caches.match(OFFLINE_URL);
+          if (offlineFallback) return offlineFallback;
+          return new Response('Network offline. Please reload when connected.', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: { 'Content-Type': 'text/plain' },
+          });
         })
     );
     return;
   }
 
-  // 2. Static Assets (Icons, Images, Scripts, Styles)
+  // 4. Static Assets (Icons, Images, Scripts, Styles)
   if (
     url.pathname.startsWith('/icons/') ||
     url.pathname.startsWith('/_next/static/') ||
@@ -84,7 +100,7 @@ self.addEventListener('fetch', (event) => {
           // Revalidate in background
           fetch(request)
             .then((networkResponse) => {
-              if (networkResponse.status === 200) {
+              if (networkResponse && networkResponse.status === 200) {
                 caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse));
               }
             })
@@ -92,22 +108,23 @@ self.addEventListener('fetch', (event) => {
           return cachedResponse;
         }
 
-        return fetch(request).then((networkResponse) => {
-          if (networkResponse.status === 200) {
-            const copy = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          }
-          return networkResponse;
-        });
+        return fetch(request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const copy = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            }
+            return networkResponse;
+          })
+          .catch(async () => {
+            const fallback = await caches.match(request);
+            if (fallback) return fallback;
+            return new Response('', { status: 408, statusText: 'Request Timeout' });
+          });
       })
     );
     return;
   }
 
-  // 3. API or Other requests: Network-first with cache fallback
-  event.respondWith(
-    fetch(request).catch(() => {
-      return caches.match(request);
-    })
-  );
+  // For everything else, do NOT intercept, let browser handle natively
 });

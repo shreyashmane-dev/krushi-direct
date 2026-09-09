@@ -5,6 +5,7 @@ import Footer from '@/components/footer';
 import { AuthProvider } from '@/lib/auth/context';
 
 import MandiTicker from '@/components/mandi-ticker';
+import DemoPersonaBanner from '@/components/demo-persona-banner';
 import AiChatModal from '@/components/ai-chat-modal';
 import PwaInstaller from '@/components/pwa-installer';
 
@@ -41,7 +42,12 @@ export const metadata: Metadata = {
     ],
     apple: '/icons/apple-touch-icon.png',
   },
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
 };
+
+import { ThemeProvider } from '@/lib/theme-context';
 
 export default function RootLayout({
   children,
@@ -50,15 +56,23 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full">
-      <body className="flex flex-col min-h-screen bg-[#fbfdf9] text-slate-900 antialiased selection:bg-emerald-500 selection:text-white">
-        <AuthProvider>
-          <MandiTicker />
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <AiChatModal />
-          <PwaInstaller />
-        </AuthProvider>
+      <head>
+        <meta name="mobile-web-app-capable" content="yes" />
+      </head>
+      <body className="min-h-screen bg-[#fafcf8] dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-emerald-500 selection:text-white transition-colors duration-150">
+        <ThemeProvider>
+          <AuthProvider>
+            <Navbar />
+            <div className="md:pl-64 flex flex-col min-h-screen">
+              <DemoPersonaBanner />
+              <MandiTicker />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <AiChatModal />
+            <PwaInstaller />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

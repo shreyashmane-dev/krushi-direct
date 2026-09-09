@@ -61,8 +61,9 @@ export default function CollectionCentersMap() {
 
     async function initMap() {
       if (typeof window === 'undefined' || !mapContainerRef.current) return;
-      const L = (await import('leaflet')).default;
-      if (!isMounted || !mapContainerRef.current) return;
+      try {
+        const L = (await import('leaflet')).default;
+        if (!isMounted || !mapContainerRef.current) return;
 
       if (mapInstanceRef.current) {
         try {
@@ -111,6 +112,9 @@ export default function CollectionCentersMap() {
           )
           .addTo(map);
       });
+      } catch (err) {
+        console.warn('Leaflet map initialization skipped:', err);
+      }
     }
 
     initMap();
