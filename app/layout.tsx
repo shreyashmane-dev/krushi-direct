@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
@@ -6,6 +6,14 @@ import { AuthProvider } from '@/lib/auth/context';
 
 import MandiTicker from '@/components/mandi-ticker';
 import AiChatModal from '@/components/ai-chat-modal';
+import PwaInstaller from '@/components/pwa-installer';
+
+export const viewport: Viewport = {
+  themeColor: '#059669',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   title: 'KisanDirect | AI Farmer-to-Buyer Agricultural Marketplace',
@@ -19,8 +27,19 @@ export const metadata: Metadata = {
     'Direct Farm Sourcing',
     'Zero Middlemen Agriculture',
   ],
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'KisanDirect',
+  },
   icons: {
-    icon: '/icon',
+    icon: [
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/icon', type: 'image/png' },
+    ],
+    apple: '/icons/apple-touch-icon.png',
   },
 };
 
@@ -38,6 +57,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <AiChatModal />
+          <PwaInstaller />
         </AuthProvider>
       </body>
     </html>

@@ -65,14 +65,24 @@ export default function CollectionCentersMap() {
       if (!isMounted || !mapContainerRef.current) return;
 
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
+        try {
+          mapInstanceRef.current.stop();
+          mapInstanceRef.current.remove();
+        } catch {
+          // ignore
+        }
         mapInstanceRef.current = null;
+      }
+
+      if (mapContainerRef.current) {
+        delete (mapContainerRef.current as any)._leaflet_id;
       }
 
       const map = L.map(mapContainerRef.current, {
         center: [18.5204, 73.8567], // Pune center
         zoom: 7,
         scrollWheelZoom: false,
+        zoomAnimation: false,
       });
 
       mapInstanceRef.current = map;
@@ -108,8 +118,16 @@ export default function CollectionCentersMap() {
     return () => {
       isMounted = false;
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
+        try {
+          mapInstanceRef.current.stop();
+          mapInstanceRef.current.remove();
+        } catch {
+          // ignore
+        }
         mapInstanceRef.current = null;
+      }
+      if (mapContainerRef.current) {
+        delete (mapContainerRef.current as any)._leaflet_id;
       }
     };
   }, []);

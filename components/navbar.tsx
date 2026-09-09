@@ -77,9 +77,11 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition">
-              <Sprout className="w-6 h-6" />
-            </div>
+            <img
+              src="/icons/icon-192.png"
+              alt="KisanDirect Logo"
+              className="w-10 h-10 rounded-xl shadow-md shadow-emerald-600/20 group-hover:scale-105 transition border border-emerald-400/30 object-cover"
+            />
             <div className="flex flex-col">
               <span className="text-xl font-black tracking-tight text-emerald-950 flex items-center gap-1">
                 Kisan<span className="text-emerald-600">Direct</span>
@@ -124,6 +126,15 @@ export default function Navbar() {
               }`}
             >
               How It Works
+            </Link>
+            <Link
+              href="/documentation"
+              className={`hover:text-emerald-600 transition flex items-center gap-1 ${
+                pathname === '/documentation' ? 'text-emerald-700 font-bold' : ''
+              }`}
+            >
+              <span>Docs</span>
+              <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1 py-0.2 rounded">AnoS</span>
             </Link>
             <Link
               href={getDashboardUrl()}

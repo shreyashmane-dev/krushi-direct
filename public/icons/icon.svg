@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="50%" stop-color="#047857"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </linearGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer Rounded Container -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle inner border -->
+  <rect x="16" y="16" width="480" height="480" rx="116" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="4"/>
+
+  <!-- Sprout Leaves & Sun Graphic -->
+  <g transform="translate(106, 106) scale(1.25)">
+    <!-- Sun Ray Accent -->
+    <circle cx="120" cy="50" r="28" fill="url(#goldGrad)" opacity="0.9"/>
+    
+    <!-- Sprout Stem and Leaves -->
+    <path d="M120 190 V110 C120 70 80 50 40 55 C40 95 65 135 120 145" fill="url(#leafGrad)"/>
+    <path d="M120 145 C175 135 200 95 200 55 C160 50 120 70 120 110" fill="#a7f3d0"/>
+    <path d="M115 190 C115 150 125 120 125 100" stroke="#064e3b" stroke-width="8" stroke-linecap="round"/>
+  </g>
+
+  <!-- Text "KD" Emblem at bottom -->
+  <text x="256" y="430" font-family="system-ui, -apple-system, sans-serif" font-size="76" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="4">
+    KISAN DIRECT
+  </text>
+</svg>

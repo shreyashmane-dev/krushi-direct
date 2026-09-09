@@ -16,17 +16,42 @@ import {
 } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
 
+import { useAuth } from '@/lib/auth/context';
+
 export default function FarmerProduceInventoryPage() {
+  const { user, isLoading: authLoading } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/products?farmerId=user-farmer-ramesh');
+      const farmerId = user?.farmerProfile?.id || user?.id;
+      const url = farmerId ? `/api/products?farmerId=${farmerId}` : '/api/products';
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
-        setProducts(data.products || []);
+        let list = data.products || [];
+        // If farmerId was used but returned 0, try fetching all and matching by user or profile
+        if (list.length === 0 && farmerId) {
+          const fallbackRes = await fetch('/api/products');
+          if (fallbackRes.ok) {
+            const fallbackData = await fallbackRes.json();
+            const matched = (fallbackData.products || []).filter(
+              (p: any) =>
+                p.farmerId === farmerId ||
+                p.farmer?.userId === farmerId ||
+                p.farmer?.user?.id === user?.id ||
+                p.farmer?.id === farmerId
+            );
+            if (matched.length > 0) {
+              list = matched;
+            } else if (!user) {
+              list = fallbackData.products || [];
+            }
+          }
+        }
+        setProducts(list);
       }
     } catch {
       // ignore
@@ -36,8 +61,10 @@ export default function FarmerProduceInventoryPage() {
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (!authLoading) {
+      fetchProducts();
+    }
+  }, [user?.id, user?.farmerProfile?.id, authLoading]);
 
   const toggleStatus = async (id: string, currentStatus: string) => {
     const nextStatus = currentStatus === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';

@@ -1,0 +1,65 @@
+{
+  "id": "/kisan-direct-pwa",
+  "name": "KisanDirect | Direct Farmgate Agro-Marketplace",
+  "short_name": "KisanDirect",
+  "description": "Maharashtra's Direct Agricultural Marketplace connecting verified farmers directly with consumers, restaurants, and retail marts.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#020617",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Agro Marketplace",
+      "short_name": "Marketplace",
+      "description": "Browse verified direct farm produce",
+      "url": "/marketplace",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Sell Produce",
+      "short_name": "List Harvest",
+      "description": "Add new agricultural produce listing",
+      "url": "/farmer/produce/new",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Farmer Dashboard",
+      "short_name": "Farmer Desk",
+      "description": "View farmer orders and revenue",
+      "url": "/farmer/dashboard",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Track Orders",
+      "short_name": "Orders",
+      "description": "Track ongoing delivery orders",
+      "url": "/buyer/orders",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["shopping", "business", "food"],
+  "dir": "ltr",
+  "lang": "en"
+}

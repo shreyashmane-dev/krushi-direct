@@ -55,8 +55,15 @@ export default function DeliveryMap({
 
       // Cleanup existing map instance if any
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
+        try {
+          mapInstanceRef.current.stop();
+          mapInstanceRef.current.remove();
+        } catch {}
         mapInstanceRef.current = null;
+      }
+
+      if (mapContainerRef.current) {
+        delete (mapContainerRef.current as any)._leaflet_id;
       }
 
       // Midpoint & Route interpolation
@@ -81,6 +88,7 @@ export default function DeliveryMap({
         center: [18.75, 73.90],
         zoom: 10,
         scrollWheelZoom: false,
+        zoomAnimation: false,
       });
 
       mapInstanceRef.current = map;
@@ -148,8 +156,8 @@ export default function DeliveryMap({
         dashArray: '8, 8',
       }).addTo(map);
 
-      // Auto-fit bounds
-      map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
+      // Auto-fit bounds without animation to eliminate dangling zoom transitions
+      map.fitBounds(polyline.getBounds(), { padding: [40, 40], animate: false });
       setMapLoaded(true);
     }
 
@@ -158,8 +166,16 @@ export default function DeliveryMap({
     return () => {
       isMounted = false;
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
+        try {
+          mapInstanceRef.current.stop();
+          mapInstanceRef.current.remove();
+        } catch {
+          // ignore
+        }
         mapInstanceRef.current = null;
+      }
+      if (mapContainerRef.current) {
+        delete (mapContainerRef.current as any)._leaflet_id;
       }
     };
   }, [originCoords, destCoords, activeStep, origin, destination]);

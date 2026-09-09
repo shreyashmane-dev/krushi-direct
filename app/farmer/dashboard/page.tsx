@@ -29,10 +29,11 @@ export default function FarmerDashboardPage() {
   useEffect(() => {
     async function loadFarmerData() {
       try {
-        const farmerId = user?.farmerProfile?.id || (user?.id === 'user-farmer-suresh' ? 'user-farmer-suresh' : 'user-farmer-ramesh');
+        const farmerId = user?.farmerProfile?.id || user?.id;
+        const productsUrl = farmerId ? `/api/products?farmerId=${farmerId}` : '/api/products';
         const [ordersRes, productsRes] = await Promise.all([
           fetch('/api/orders?role=FARMER'),
-          fetch(`/api/products?farmerId=${farmerId}`),
+          fetch(productsUrl),
         ]);
 
         if (ordersRes.ok) {

@@ -72,16 +72,39 @@ export async function POST(req: NextRequest) {
       if (name && (!user.name || user.name === 'Direct Buyer')) updateData.name = name;
       if (phone && !user.phone) updateData.phone = phone;
 
-      if (Object.keys(updateData).length > 0) {
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: updateData,
-          include: {
-            farmerProfile: true,
-            buyerProfile: true,
-          },
-        });
+      // If user selected FARMER role, ensure role is updated and profile exists
+      if (role === 'FARMER') {
+        updateData.role = 'FARMER';
+        if (!user.farmerProfile) {
+          try {
+            await prisma.farmerProfile.create({
+              data: {
+                userId: user.id,
+                village: 'Pune Rural',
+                district: 'Pune',
+                state: 'Maharashtra',
+                pinCode: '411001',
+                farmLocation: 'Pune, Maharashtra',
+                farmSize: 4.5,
+                cropsGrown: 'Tomatoes, Onions, Green Chillies',
+                verificationStatus: 'VERIFIED',
+                rating: 4.9,
+              },
+            });
+          } catch (profErr) {
+            console.warn('[Auth] Error creating farmer profile for existing user:', profErr);
+          }
+        }
       }
+
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: updateData,
+        include: {
+          farmerProfile: true,
+          buyerProfile: true,
+        },
+      });
     } else {
       // 3. User does not exist, provision new user with sharp customer profile
       const defaultPassword = await bcrypt.hash(firebaseUid || 'firebase-verified-secret', 10);

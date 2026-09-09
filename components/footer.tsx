@@ -94,9 +94,15 @@ export default function Footer() {
           </div>
 
           <div>
-            <h5 className="text-white font-semibold text-xs tracking-wider uppercase mb-3">Platform Architecture</h5>
+            <h5 className="text-white font-semibold text-xs tracking-wider uppercase mb-3">Dossier & Docs</h5>
             <ul className="space-y-2 text-xs text-slate-400">
-              <li><Link href="/innovation" className="hover:text-emerald-400 transition font-medium text-emerald-400">How It Works</Link></li>
+              <li>
+                <Link href="/documentation" className="hover:text-emerald-400 transition font-bold text-amber-300 flex items-center gap-1">
+                  <span>Full Documentation</span>
+                  <span className="text-[9px] bg-emerald-900/80 text-emerald-300 px-1.5 py-0.2 rounded border border-emerald-500/30">AnoS</span>
+                </Link>
+              </li>
+              <li><Link href="/innovation" className="hover:text-emerald-400 transition">How It Works</Link></li>
               <li><Link href="/innovation#supply-chain" className="hover:text-emerald-400 transition">Supply Chain Comparison</Link></li>
               <li><Link href="/innovation#business-model" className="hover:text-emerald-400 transition">Unit Economics & Model</Link></li>
               <li><Link href="/admin/dashboard" className="hover:text-emerald-400 transition">Admin Governance Portal</Link></li>
@@ -105,14 +111,27 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom Legal & Disclaimer */}
-      <div className="border-t border-slate-900 bg-slate-950/50 py-6 px-4 text-center text-[11px] text-slate-500">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>© 2026 KisanDirect. All agro-climatic predictions are AI-assisted estimates.</p>
-          <div className="flex items-center gap-4 text-slate-400">
-            <span>Built with Next.js, Prisma, Tailwind & AI</span>
-            <span>•</span>
-            <span className="text-emerald-400 font-medium">Maharashtra Agro-Pilot</span>
+      {/* Bottom Legal, Company & Creator Credits */}
+      <div className="border-t border-slate-900 bg-slate-950/80 py-6 px-4 text-center text-xs text-slate-400">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-2">
+            <span className="font-bold text-white">© 2026 KisanDirect</span>
+            <span className="hidden sm:inline">&bull;</span>
+            <span className="text-emerald-400 font-semibold">Company: AnoS</span>
+            <span className="hidden sm:inline">&bull;</span>
+            <span className="text-slate-300">
+              Made with <span className="text-rose-500">❤️</span> by <strong className="text-white">Kuber Narute and his team</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4 text-xs">
+            <Link
+              href="/documentation"
+              className="bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 shadow-sm"
+            >
+              <span>View Full Documentation</span>
+              <span>&rarr;</span>
+            </Link>
           </div>
         </div>
       </div>
