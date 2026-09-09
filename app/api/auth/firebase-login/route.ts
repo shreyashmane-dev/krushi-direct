@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
             : {
                 buyerProfile: {
                   create: {
-                    buyerType: role,
+                    businessType: role,
                     businessName: name || targetConfig.title,
                     deliveryAddress: 'Pune / Western Maharashtra',
                   },

@@ -32,10 +32,14 @@ yarn-error.log*
 !.env.example
 
 # SQLite / databases
-prisma/*.db
 prisma/*.db-journal
-*.db
+prisma/*.db-wal
+prisma/*.db-shm
 *.db-journal
+*.db-wal
+*.db-shm
+*.db
+!prisma/dev.db
 
 # vercel
 .vercel
