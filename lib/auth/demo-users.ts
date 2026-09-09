@@ -51,6 +51,26 @@ export const DEMO_ACCOUNTS: DemoUserDef[] = [
     description: 'Household buyer purchasing weekly farm-fresh organic produce boxes.',
   },
   {
+    id: 'user-retailer-omkar',
+    name: 'Kailash Gupta (Omkar Mart)',
+    email: 'kailash.retail@kisandirect.in',
+    role: 'RETAILER',
+    phone: '+91 98330 55667',
+    avatar: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?w=200&auto=format&fit=crop&q=80',
+    location: 'APMC Market Yard, Pune',
+    description: 'Wholesale kirana & supermart chain procuring bulk 20kg vegetable & fruit crates directly from farmgate.',
+  },
+  {
+    id: 'user-processor-sahyadri',
+    name: 'Sunil Jagtap (Sahyadri Agro)',
+    email: 'sunil.processor@kisandirect.in',
+    role: 'PROCESSOR',
+    phone: '+91 98660 77889',
+    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&auto=format&fit=crop&q=80',
+    location: 'Mega Food Park, Dindori, Nashik',
+    description: 'Industrial agro-processing company executing multi-ton contract farming orders with quality spectrometry.',
+  },
+  {
     id: 'user-partner-vikram',
     name: 'Vikram Shinde (KisanLogistics)',
     email: 'vikram.delivery@kisandirect.in',
@@ -71,3 +91,25 @@ export const DEMO_ACCOUNTS: DemoUserDef[] = [
     description: 'Platform Administrator overseeing farmer verifications, transactions, and disputes.',
   },
 ];
+
+export function getRoleDashboardUrl(role?: string | null): string {
+  switch (role) {
+    case 'FARMER':
+      return '/farmer/dashboard';
+    case 'RESTAURANT':
+      return '/buyer/dashboard';
+    case 'CONSUMER':
+      return '/consumer/dashboard';
+    case 'RETAILER':
+      return '/retailer/dashboard';
+    case 'PROCESSOR':
+      return '/processor/dashboard';
+    case 'DELIVERY_PARTNER':
+      return '/logistics/dashboard';
+    case 'ADMIN':
+      return '/admin/dashboard';
+    case 'BUYER':
+    default:
+      return '/buyer/dashboard';
+  }
+}

@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/context';
-import { DEMO_ACCOUNTS } from '@/lib/auth/demo-users';
+import { DEMO_ACCOUNTS, getRoleDashboardUrl } from '@/lib/auth/demo-users';
 import {
   Sprout,
   ShoppingBag,
@@ -24,6 +24,7 @@ import {
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, switchUser, logout } = useAuth();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -65,12 +66,8 @@ export default function Navbar() {
   };
 
   // Determine dashboard URL based on user role
-  const getDashboardUrl = () => {
-    if (!user) return '/farmer/dashboard';
-    if (user.role === 'FARMER') return '/farmer/dashboard';
-    if (user.role === 'ADMIN') return '/admin/dashboard';
-    if (user.role === 'DELIVERY_PARTNER') return '/buyer/orders';
-    return '/buyer/dashboard';
+  const getDashboardUrl = (role?: string) => {
+    return getRoleDashboardUrl(role || user?.role);
   };
 
   return (
@@ -252,6 +249,9 @@ export default function Navbar() {
                         onClick={async () => {
                           await switchUser(acc.id);
                           setShowDemoMenu(false);
+                          const target = getRoleDashboardUrl(acc.role);
+                          router.push(target);
+                          router.refresh();
                         }}
                         className={`w-full flex items-center gap-2.5 px-3 py-2 text-left rounded-lg text-xs transition ${
                           user?.email === acc.email

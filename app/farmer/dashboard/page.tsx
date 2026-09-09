@@ -29,9 +29,10 @@ export default function FarmerDashboardPage() {
   useEffect(() => {
     async function loadFarmerData() {
       try {
+        const farmerId = user?.farmerProfile?.id || (user?.id === 'user-farmer-suresh' ? 'user-farmer-suresh' : 'user-farmer-ramesh');
         const [ordersRes, productsRes] = await Promise.all([
           fetch('/api/orders?role=FARMER'),
-          fetch('/api/products?farmerId=user-farmer-ramesh'),
+          fetch(`/api/products?farmerId=${farmerId}`),
         ]);
 
         if (ordersRes.ok) {
@@ -40,7 +41,16 @@ export default function FarmerDashboardPage() {
         }
         if (productsRes.ok) {
           const pData = await productsRes.json();
-          setProducts(pData.products || []);
+          // If no specific farmer products, show active products catalog
+          if (pData.products && pData.products.length > 0) {
+            setProducts(pData.products);
+          } else {
+            const allP = await fetch('/api/products');
+            if (allP.ok) {
+              const allJson = await allP.json();
+              setProducts(allJson.products || []);
+            }
+          }
         }
       } catch {
         // ignore
@@ -84,8 +94,8 @@ export default function FarmerDashboardPage() {
       <div className="bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <img
-            src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=200"
-            alt="Ramesh Patil"
+            src={user?.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=200'}
+            alt="Farmer Profile"
             className="w-16 h-16 rounded-2xl object-cover border-2 border-emerald-400 shadow-md"
           />
           <div>
@@ -100,7 +110,12 @@ export default function FarmerDashboardPage() {
             </div>
             <p className="text-xs sm:text-sm text-emerald-100/90 mt-1 flex items-center gap-2">
               <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Manchar-Narayangaon Agro Belt, Pune District • 8.5 Acres</span>
+              <span>
+                {user?.farmerProfile?.farmLocation ||
+                  (user?.email?.includes('suresh')
+                    ? 'Lasalgaon Mandi Belt, Nashik • 14 Acres'
+                    : 'Manchar-Narayangaon Agro Belt, Pune District • 8.5 Acres')}
+              </span>
             </p>
           </div>
         </div>

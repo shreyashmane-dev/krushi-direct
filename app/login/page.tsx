@@ -27,7 +27,7 @@ import {
   Building2,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/context';
-import { DEMO_ACCOUNTS } from '@/lib/auth/demo-users';
+import { DEMO_ACCOUNTS, getRoleDashboardUrl } from '@/lib/auth/demo-users';
 import {
   signInWithGoogle,
   signInWithFirebaseEmail,
@@ -63,10 +63,10 @@ const CUSTOMER_ROLES: RoleOption[] = [
     id: 'CONSUMER',
     title: 'Household Consumer',
     subtitle: '100% farm-gate fresh produce delivered straight to your doorstep',
-    badge: 'Buyer',
+    badge: 'Household',
     icon: UserCheck,
     color: 'emerald',
-    redirectUrl: '/marketplace',
+    redirectUrl: '/consumer/dashboard',
   },
   {
     id: 'RESTAURANT',
@@ -84,7 +84,7 @@ const CUSTOMER_ROLES: RoleOption[] = [
     badge: 'Merchant',
     icon: Store,
     color: 'blue',
-    redirectUrl: '/buyer/dashboard',
+    redirectUrl: '/retailer/dashboard',
   },
   {
     id: 'PROCESSOR',
@@ -93,7 +93,7 @@ const CUSTOMER_ROLES: RoleOption[] = [
     badge: 'Industrial',
     icon: Factory,
     color: 'purple',
-    redirectUrl: '/buyer/dashboard',
+    redirectUrl: '/processor/dashboard',
   },
   {
     id: 'DELIVERY_PARTNER',
@@ -102,7 +102,7 @@ const CUSTOMER_ROLES: RoleOption[] = [
     badge: 'Transporter',
     icon: Truck,
     color: 'teal',
-    redirectUrl: '/buyer/orders',
+    redirectUrl: '/logistics/dashboard',
   },
 ];
 
@@ -138,20 +138,7 @@ export default function LoginPage() {
   const activeRoleConfig = CUSTOMER_ROLES.find((r) => r.id === selectedRole) || CUSTOMER_ROLES[0];
 
   const getTargetRedirect = (roleName: string) => {
-    switch (roleName) {
-      case 'FARMER':
-        return '/farmer/dashboard';
-      case 'ADMIN':
-        return '/admin/dashboard';
-      case 'DELIVERY_PARTNER':
-        return '/buyer/orders';
-      case 'RESTAURANT':
-      case 'RETAILER':
-      case 'PROCESSOR':
-        return '/buyer/dashboard';
-      default:
-        return '/marketplace';
-    }
+    return getRoleDashboardUrl(roleName);
   };
 
   // Handle Google Sign-in

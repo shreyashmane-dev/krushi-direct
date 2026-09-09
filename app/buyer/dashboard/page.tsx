@@ -57,8 +57,8 @@ export default function BuyerDashboardPage() {
       <div className="bg-gradient-to-r from-blue-900 via-slate-900 to-slate-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <img
-            src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200"
-            alt="Rahul Sharma"
+            src={user?.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200'}
+            alt="Buyer Profile"
             className="w-16 h-16 rounded-2xl object-cover border-2 border-blue-400 shadow-md"
           />
           <div>

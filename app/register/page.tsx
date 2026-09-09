@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Sprout, Lock, Mail, User, Phone, MapPin, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/lib/auth/context';
 import { signInWithGoogle } from '@/lib/firebase';
+import { getRoleDashboardUrl } from '@/lib/auth/demo-users';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -37,8 +38,7 @@ export default function RegisterPage() {
       });
 
       if (success) {
-        if (role === 'FARMER') router.push('/farmer/dashboard');
-        else router.push('/marketplace');
+        router.push(getRoleDashboardUrl(role));
       } else {
         setError('Google authentication succeeded but failed to initialize customer profile.');
       }
@@ -73,8 +73,7 @@ export default function RegisterPage() {
 
       if (res.ok) {
         await refreshUser();
-        if (role === 'FARMER') router.push('/farmer/dashboard');
-        else router.push('/marketplace');
+        router.push(getRoleDashboardUrl(role));
       } else {
         const data = await res.json();
         setError(data.error || 'Registration failed');
