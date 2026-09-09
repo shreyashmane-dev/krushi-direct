@@ -35,6 +35,8 @@ import { useLanguage } from '@/lib/i18n';
 import WeatherWidget from '@/components/weather-widget';
 import UpiQrModal from '@/components/upi-qr-modal';
 import WhatsAppShare from '@/components/whatsapp-share';
+import { ProfitCalculator } from '@/components/profit-calculator';
+import CropDiseaseScanner from '@/components/crop-disease-scanner';
 
 const INITIAL_FEATURED_PRODUCTS = [
   {
@@ -781,6 +783,20 @@ export default function HomePage() {
             </table>
           </div>
         </div>
+      </section>
+
+      {/* ======================================================== */}
+      {/* 3B. INTERACTIVE DIRECT FARMGATE PROFIT CALCULATOR        */}
+      {/* ======================================================== */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ProfitCalculator />
+      </section>
+
+      {/* ======================================================== */}
+      {/* 3C. AI CROP LEAF DISEASE & PEST DIAGNOSTICS SCANNER      */}
+      {/* ======================================================== */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <CropDiseaseScanner />
       </section>
 
       {/* ======================================================== */}

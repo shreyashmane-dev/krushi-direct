@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import AIPriceAssistant from '@/components/ai-price-assistant';
 import { DemandForecastResult } from '@/lib/ai/ai-service';
+import { ProfitCalculator } from '@/components/profit-calculator';
+import CropDiseaseScanner from '@/components/crop-disease-scanner';
 
 export default function FarmerInsightsPage() {
   const [selectedCrop, setSelectedCrop] = useState('Tomato');
@@ -211,13 +213,23 @@ export default function FarmerInsightsPage() {
 
       {/* AI Price Assistant Section */}
       <div className="space-y-3">
-        <h3 className="text-lg font-bold text-slate-900">Run Dynamic Price Estimation for {selectedCrop}</h3>
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Run Dynamic Price Estimation for {selectedCrop}</h3>
         <AIPriceAssistant
           cropName={selectedCrop}
           grade="A"
           quantity={500}
           location="Pune, Maharashtra"
         />
+      </div>
+
+      {/* Disintermediation Profit Calculator */}
+      <div className="pt-4">
+        <ProfitCalculator />
+      </div>
+
+      {/* Crop Leaf Disease & Pest Scanner */}
+      <div className="pt-4">
+        <CropDiseaseScanner />
       </div>
     </div>
   );

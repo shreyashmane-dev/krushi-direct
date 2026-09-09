@@ -16,7 +16,12 @@ import {
   Sprout,
   ChevronDown,
   ArrowRight,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n';
 
 interface Message {
   id: string;
@@ -35,17 +40,30 @@ const QUICK_PROMPTS = [
 ];
 
 export default function AiChatModal() {
+  const { language: appLang } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [language, setLanguage] = useState<'en' | 'mr' | 'hi'>('en');
+  const [language, setLanguage] = useState<'en' | 'mr' | 'hi'>(appLang || 'en');
+  
+  // Voice State
+  const [isListening, setIsListening] = useState(false);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // Sync with app language if user hasn't explicitly overridden
+  useEffect(() => {
+    if (appLang) {
+      setLanguage(appLang);
+    }
+  }, [appLang]);
 
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome-1',
       role: 'assistant',
-      content: `🌱 **Namaste! I am KrushiMitra (कृषि मित्र) AI**, your agricultural intelligence assistant.\n\nI can help you with:\n• **Live APMC Mandi Prices** across Maharashtra\n• **Direct Farmgate Selling Advice** & Pricing\n• **Government Schemes** (PM-KISAN, PMFBY)\n• **Kharif & Rabi Crop Agronomy**\n\nHow can I help you today? You can ask in English, मराठी, or हिन्दी!`,
+      content: `🌱 **Namaste! I am KrushiMitra (कृषि मित्र) AI**, your agricultural intelligence assistant.\n\nI can help you with:\n• **Live APMC Mandi Prices** across Maharashtra\n• **Direct Farmgate Selling Advice** & Pricing\n• **Government Schemes** (PM-KISAN, PMFBY)\n• **Kharif & Rabi Crop Agronomy**\n\n🎤 *You can tap the microphone to speak, or tap the speaker icon to listen to replies in English, मराठी, or हिन्दी!*`,
       timestamp: 'Just now',
       provider: 'Google Gemini 3.6 Flash (Live Cloud AI)',
     },
@@ -63,9 +81,127 @@ export default function AiChatModal() {
     }
   }, [messages, isOpen]);
 
+  // Clean up speech on unmount
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
+
+  // Speech Recognition (Voice Input)
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(false);
+      return;
+    }
+
+    if (typeof window === 'undefined') return;
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert(
+        language === 'mr'
+          ? 'तुमच्या ब्राऊझरमध्ये व्हॉइस इनपुट समर्थित नाही. कृपया Google Chrome किंवा Edge वापरा.'
+          : language === 'hi'
+          ? 'आपके ब्राउज़र में वॉइस इनपुट समर्थित नहीं है। कृपया Google Chrome या Edge का उपयोग करें।'
+          : 'Speech recognition is not supported in this browser. Please use Chrome or Edge.'
+      );
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      // Locale mapping
+      recognition.lang = language === 'mr' ? 'mr-IN' : language === 'hi' ? 'hi-IN' : 'en-IN';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
+        setInput(transcript);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.error('Failed to initialize speech recognition', err);
+      setIsListening(false);
+    }
+  };
+
+  // Text-To-Speech (Voice Output)
+  const toggleSpeakMessage = (text: string, messageId: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      alert('Text-to-speech is not supported in this browser.');
+      return;
+    }
+
+    if (speakingMessageId === messageId) {
+      window.speechSynthesis.cancel();
+      setSpeakingMessageId(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    // Strip markdown formatting for cleaner speech
+    const cleanText = text
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+      .replace(/•/g, '')
+      .replace(/🌱|🍅|🧅|💰|🌾|🏛️|⚡|📦|✅|⚠️|🎤/g, '');
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = language === 'mr' ? 'mr-IN' : language === 'hi' ? 'hi-IN' : 'en-IN';
+    utterance.rate = 0.95; // Slightly slower for clear Indian pronunciation
+
+    utterance.onend = () => {
+      setSpeakingMessageId(null);
+    };
+
+    utterance.onerror = () => {
+      setSpeakingMessageId(null);
+    };
+
+    setSpeakingMessageId(messageId);
+    window.speechSynthesis.speak(utterance);
+  };
+
   const handleSend = async (customQuery?: string) => {
     const textToSend = customQuery || input;
     if (!textToSend.trim() || loading) return;
+
+    // Stop voice if still active
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -127,6 +263,10 @@ export default function AiChatModal() {
   };
 
   const clearChat = () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setSpeakingMessageId(null);
     setMessages([
       {
         id: 'welcome-reset',
@@ -141,7 +281,7 @@ export default function AiChatModal() {
   return (
     <>
       {/* Floating Action Button */}
-      <div className="fixed bottom-6 right-6 z-40">
+      <div className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40">
         <button
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Open KrushiMitra AI Assistant"
@@ -156,14 +296,14 @@ export default function AiChatModal() {
           <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
           <span className="hidden sm:inline font-black text-xs tracking-tight">KrushiMitra AI</span>
           <span className="hidden sm:inline text-[10px] bg-white/20 px-2 py-0.5 rounded-full uppercase font-bold text-emerald-100">
-            Gemini
+            Voice & Chat
           </span>
         </button>
       </div>
 
       {/* Floating Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-20 right-4 sm:right-6 z-50 w-[94vw] sm:w-[440px] max-h-[82vh] h-[640px] bg-white rounded-3xl border border-emerald-100 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-200">
+        <div className="fixed bottom-24 sm:bottom-20 right-2 sm:right-6 z-50 w-[96vw] sm:w-[440px] max-h-[82vh] h-[640px] bg-white dark:bg-stone-900 rounded-3xl border border-emerald-100 dark:border-stone-800 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-200">
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-800 via-emerald-900 to-slate-900 text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -176,10 +316,10 @@ export default function AiChatModal() {
                 <div className="flex items-center gap-2">
                   <h3 className="font-black text-sm tracking-tight text-white">KrushiMitra AI</h3>
                   <span className="text-[9px] bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 px-1.5 py-0.5 rounded-full font-bold uppercase">
-                    Gemini 1.5
+                    Voice AI
                   </span>
                 </div>
-                <p className="text-[11px] text-emerald-200/80">AI Agricultural & Mandi Price Advisor</p>
+                <p className="text-[11px] text-emerald-200/80">Agricultural & Mandi Voice Advisor</p>
               </div>
             </div>
 
@@ -202,9 +342,9 @@ export default function AiChatModal() {
           </div>
 
           {/* Language Selector Bar */}
-          <div className="bg-emerald-50/80 border-b border-emerald-100 px-4 py-1.5 flex items-center justify-between text-xs">
-            <span className="text-[11px] text-emerald-900 font-bold flex items-center gap-1">
-              <Globe className="w-3.5 h-3.5 text-emerald-700" />
+          <div className="bg-emerald-50/80 dark:bg-stone-800/80 border-b border-emerald-100 dark:border-stone-700 px-4 py-1.5 flex items-center justify-between text-xs">
+            <span className="text-[11px] text-emerald-900 dark:text-emerald-300 font-bold flex items-center gap-1">
+              <Globe className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
               <span>Language:</span>
             </span>
             <div className="flex items-center gap-1">
@@ -214,26 +354,27 @@ export default function AiChatModal() {
                   { code: 'mr', label: 'मराठी' },
                   { code: 'hi', label: 'हिन्दी' },
                 ] as const
-              ).map((lang) => (
+              ).map((l) => (
                 <button
-                  key={lang.code}
-                  onClick={() => setLanguage(lang.code)}
+                  key={l.code}
+                  onClick={() => setLanguage(l.code)}
                   className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition ${
-                    language === lang.code
+                    language === l.code
                       ? 'bg-emerald-700 text-white'
-                      : 'text-emerald-800 hover:bg-emerald-200/60'
+                      : 'text-emerald-800 dark:text-stone-300 hover:bg-emerald-200/60 dark:hover:bg-stone-700'
                   }`}
                 >
-                  {lang.label}
+                  {l.label}
                 </button>
               ))}
             </div>
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-[#fcfdfa]">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-[#fcfdfa] dark:bg-stone-900">
             {messages.map((m) => {
               const isAssistant = m.role === 'assistant';
+              const isSpeaking = speakingMessageId === m.id;
               return (
                 <div key={m.id} className={`flex items-start gap-2.5 ${isAssistant ? '' : 'flex-row-reverse'}`}>
                   {/* Avatar */}
@@ -248,11 +389,11 @@ export default function AiChatModal() {
                   </div>
 
                   {/* Bubble */}
-                  <div className={`max-w-[82%] space-y-1 ${isAssistant ? '' : 'text-right'}`}>
+                  <div className={`max-w-[84%] space-y-1 ${isAssistant ? '' : 'text-right'}`}>
                     <div
                       className={`p-3.5 rounded-2xl text-xs leading-relaxed ${
                         isAssistant
-                          ? 'bg-white border border-slate-200 text-slate-800 shadow-sm'
+                          ? 'bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 text-slate-800 dark:text-stone-200 shadow-sm'
                           : 'bg-emerald-600 text-white font-medium rounded-br-sm'
                       }`}
                     >
@@ -260,24 +401,52 @@ export default function AiChatModal() {
 
                       {/* Message Actions */}
                       {isAssistant && (
-                        <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
-                          <span>{m.provider || 'KrushiMitra AI'}</span>
-                          <button
-                            onClick={() => copyToClipboard(m.content, m.id)}
-                            className="hover:text-emerald-700 flex items-center gap-1 transition"
-                          >
-                            {copiedId === m.id ? (
-                              <>
-                                <Check className="w-3 h-3 text-emerald-600" />
-                                <span className="text-emerald-600 font-bold">Copied</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3 h-3" />
-                                <span>Copy</span>
-                              </>
-                            )}
-                          </button>
+                        <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-stone-700 flex items-center justify-between text-[10px] text-slate-400">
+                          <span className="truncate max-w-[120px]">{m.provider || 'KrushiMitra'}</span>
+                          <div className="flex items-center gap-2">
+                            {/* Read Aloud Button */}
+                            <button
+                              type="button"
+                              onClick={() => toggleSpeakMessage(m.content, m.id)}
+                              title={isSpeaking ? 'Stop speaking' : 'Read aloud in voice'}
+                              className={`flex items-center gap-1 px-1.5 py-0.5 rounded transition ${
+                                isSpeaking 
+                                  ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-bold'
+                                  : 'hover:text-emerald-700 dark:hover:text-emerald-400'
+                              }`}
+                            >
+                              {isSpeaking ? (
+                                <>
+                                  <VolumeX className="w-3 h-3 text-amber-600 animate-pulse" />
+                                  <span>Stop</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Volume2 className="w-3 h-3" />
+                                  <span>Voice</span>
+                                </>
+                              )}
+                            </button>
+
+                            {/* Copy button */}
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard(m.content, m.id)}
+                              className="hover:text-emerald-700 dark:hover:text-emerald-400 flex items-center gap-1 transition"
+                            >
+                              {copiedId === m.id ? (
+                                <>
+                                  <Check className="w-3 h-3 text-emerald-600" />
+                                  <span className="text-emerald-600 font-bold">Copied</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3 h-3" />
+                                  <span>Copy</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -292,13 +461,13 @@ export default function AiChatModal() {
                 <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
                   <Bot className="w-4 h-4" />
                 </div>
-                <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm flex items-center gap-2">
+                <div className="bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-2xl p-3 shadow-sm flex items-center gap-2">
                   <div className="flex gap-1">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce"></span>
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.2s]"></span>
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.4s]"></span>
                   </div>
-                  <span className="text-[11px] text-slate-500 font-medium">Analyzing agronomy & mandi data...</span>
+                  <span className="text-[11px] text-slate-500 dark:text-stone-400 font-medium">Analyzing agronomy & mandi data...</span>
                 </div>
               </div>
             )}
@@ -307,34 +476,55 @@ export default function AiChatModal() {
           </div>
 
           {/* Quick Prompt Pills */}
-          <div className="p-2.5 bg-slate-50/90 border-t border-slate-200 overflow-x-auto no-scrollbar flex items-center gap-1.5 shrink-0">
+          <div className="p-2.5 bg-slate-50/90 dark:bg-stone-800/80 border-t border-slate-200 dark:border-stone-700 overflow-x-auto no-scrollbar flex items-center gap-1.5 shrink-0">
             {QUICK_PROMPTS.map((prompt, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => handleSend(prompt.query)}
-                className="text-[10px] font-bold bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-full px-2.5 py-1 whitespace-nowrap transition shadow-2xs"
+                className="text-[10px] font-bold bg-white dark:bg-stone-700 hover:bg-emerald-50 dark:hover:bg-emerald-950 text-slate-700 dark:text-stone-200 hover:text-emerald-800 dark:hover:text-emerald-300 border border-slate-200 dark:border-stone-600 hover:border-emerald-300 rounded-full px-2.5 py-1 whitespace-nowrap transition shadow-2xs"
               >
                 {prompt.label}
               </button>
             ))}
           </div>
 
-          {/* Input Box */}
+          {/* Input Box with Voice Mic */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleSend();
             }}
-            className="p-3 bg-white border-t border-slate-200 flex items-center gap-2"
+            className="p-3 bg-white dark:bg-stone-900 border-t border-slate-200 dark:border-stone-800 flex items-center gap-2"
           >
+            {/* Microphone Toggle Button */}
+            <button
+              type="button"
+              onClick={toggleVoiceInput}
+              title={isListening ? 'Stop listening' : 'Speak your question'}
+              className={`p-2.5 rounded-2xl transition shrink-0 flex items-center justify-center ${
+                isListening
+                  ? 'bg-red-500 text-white animate-pulse shadow-md shadow-red-500/30'
+                  : 'bg-emerald-50 dark:bg-stone-800 hover:bg-emerald-100 dark:hover:bg-stone-700 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-stone-700'
+              }`}
+            >
+              {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </button>
+
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about crop prices, sowing advice, APMC..."
-              className="flex-1 bg-slate-50 border border-slate-300 rounded-2xl px-4 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none placeholder:text-slate-400"
+              placeholder={
+                isListening
+                  ? (language === 'mr' ? 'ऐकत आहे... बोला...' : language === 'hi' ? 'सुन रहा हूँ... बोलिए...' : 'Listening... speak now...')
+                  : (language === 'mr' ? 'भाव, लागवड किंवा योजना विचारा...' : language === 'hi' ? 'भाव, बुवाई या योजना पूछें...' : 'Ask crop prices, sowing advice, APMC...')
+              }
+              className={`flex-1 bg-slate-50 dark:bg-stone-800 border rounded-2xl px-4 py-2.5 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none placeholder:text-slate-400 dark:placeholder:text-stone-500 ${
+                isListening ? 'border-red-400 ring-2 ring-red-400/30' : 'border-slate-300 dark:border-stone-700'
+              }`}
             />
+
             <button
               type="submit"
               disabled={loading || !input.trim()}
