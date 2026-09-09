@@ -68,26 +68,42 @@ export default function Navbar() {
     { href: dashboardUrl, label: t.dashboard, icon: LayoutDashboard },
   ];
 
-  const sidebarContent = (
+  const renderSidebar = (isMobile = false) => (
     <div className="flex flex-col h-full justify-between bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
       {/* Top Section: Brand + User Info */}
-      <div className="space-y-5">
-        {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 px-2 pt-2 group">
-          <img
-            src="/icons/icon-192.png"
-            alt="KisanDirect Logo"
-            className="w-10 h-10 rounded-xl shadow-md group-hover:scale-105 transition object-cover border border-emerald-500/30"
-          />
-          <div className="flex flex-col">
-            <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
-              Kisan<span className="text-emerald-600 dark:text-emerald-400">Direct</span>
-            </span>
-            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider -mt-1">
-              Agro Marketplace
-            </span>
-          </div>
-        </Link>
+      <div className="space-y-4">
+        {/* Brand Logo or Mobile Header with Close */}
+        <div className="flex items-center justify-between px-2 pt-2">
+          <Link 
+            href="/" 
+            onClick={() => isMobile && setMobileOpen(false)}
+            className="flex items-center gap-3 group"
+          >
+            <img
+              src="/icons/icon-192.png"
+              alt="KisanDirect Logo"
+              className="w-10 h-10 rounded-xl shadow-md group-hover:scale-105 transition object-cover border border-emerald-500/30"
+            />
+            <div className="flex flex-col">
+              <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+                Kisan<span className="text-emerald-600 dark:text-emerald-400">Direct</span>
+              </span>
+              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider -mt-1">
+                Agro Marketplace
+              </span>
+            </div>
+          </Link>
+
+          {isMobile && (
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 transition"
+              aria-label="Close menu"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          )}
+        </div>
 
         {/* User Card with BOLD ROLE */}
         {user ? (
@@ -132,7 +148,10 @@ export default function Navbar() {
               </button>
 
               <button
-                onClick={logout}
+                onClick={() => {
+                  logout();
+                  if (isMobile) setMobileOpen(false);
+                }}
                 className="text-slate-400 hover:text-rose-600 font-semibold flex items-center gap-1"
               >
                 <LogOut className="w-3 h-3" />
@@ -152,6 +171,7 @@ export default function Navbar() {
                     onClick={() => {
                       switchUser(acc.id);
                       setShowDemoMenu(false);
+                      if (isMobile) setMobileOpen(false);
                     }}
                     className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium transition flex items-center justify-between ${
                       user.id === acc.id
@@ -174,12 +194,14 @@ export default function Navbar() {
             <div className="grid grid-cols-2 gap-2">
               <Link
                 href="/login"
+                onClick={() => isMobile && setMobileOpen(false)}
                 className="w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 rounded-xl text-xs transition"
               >
                 Sign In
               </Link>
               <Link
                 href="/register"
+                onClick={() => isMobile && setMobileOpen(false)}
                 className="w-full text-center bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-1.5 rounded-xl text-xs transition"
               >
                 Register
@@ -189,7 +211,7 @@ export default function Navbar() {
         )}
 
         {/* Clean Navigation Links */}
-        <nav className="space-y-1 pt-1">
+        <nav className="space-y-1 pt-1 overflow-y-auto max-h-[45vh]">
           {navLinks.map((item) => {
             const Icon = item.icon;
             const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
@@ -198,6 +220,7 @@ export default function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => isMobile && setMobileOpen(false)}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   isActive
                     ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
@@ -237,11 +260,11 @@ export default function Navbar() {
     <>
       {/* 1. Desktop Vertical Navigation Sidebar */}
       <aside className="hidden md:flex fixed top-0 bottom-0 left-0 w-64 border-r border-slate-200 dark:border-slate-800 z-40 p-4 shadow-sm">
-        {sidebarContent}
+        {renderSidebar(false)}
       </aside>
 
       {/* 2. Mobile Top Navigation Header */}
-      <header className="md:hidden sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md px-4 py-3 flex items-center justify-between">
+      <header className="md:hidden sticky top-0 z-30 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <img
             src="/icons/icon-192.png"
@@ -253,7 +276,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           {user && (
             <span className="text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-700 px-1.5 py-0.5 rounded font-mono">
               <strong>{user.role}</strong>
@@ -263,7 +286,7 @@ export default function Navbar() {
           <ThemeToggle />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-1.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 transition"
+            className="p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 transition border border-slate-200 dark:border-slate-800"
             aria-label="Toggle Navigation Menu"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -273,11 +296,17 @@ export default function Navbar() {
 
       {/* 3. Mobile Slide-out Drawer */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex">
-          <div className="w-72 max-w-[80vw] h-full p-4 shadow-2xl animate-in slide-in-from-left duration-200 bg-white dark:bg-slate-950">
-            {sidebarContent}
+        <div className="md:hidden fixed inset-0 z-[70] flex">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setMobileOpen(false)}
+          />
+
+          {/* Drawer Content */}
+          <div className="relative w-72 max-w-[85vw] h-full p-4 shadow-2xl animate-in slide-in-from-left duration-200 bg-white dark:bg-slate-950 z-10 flex flex-col">
+            {renderSidebar(true)}
           </div>
-          <div className="flex-1" onClick={() => setMobileOpen(false)} />
         </div>
       )}
     </>

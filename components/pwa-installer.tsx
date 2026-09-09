@@ -109,8 +109,8 @@ export default function PwaInstaller() {
 
   return (
     <>
-      {/* Floating Bottom PWA Banner */}
-      <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-float">
+      {/* Floating Bottom PWA Banner (positioned above mobile nav) */}
+      <div className="fixed bottom-20 left-4 right-4 sm:bottom-6 sm:left-auto sm:right-6 sm:max-w-md z-30 animate-float">
         <div className="bg-slate-950/95 border border-emerald-500/40 text-white rounded-3xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl flex items-center gap-3.5 relative overflow-hidden">
           {/* Subtle green ambient light */}
           <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-500/20 rounded-full blur-2xl pointer-events-none" />

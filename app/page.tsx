@@ -29,6 +29,7 @@ import {
   RefreshCw,
   ExternalLink,
   QrCode,
+  Package,
 } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n';
@@ -133,7 +134,6 @@ export default function HomePage() {
   const { t, language } = useLanguage();
   const [featuredProducts, setFeaturedProducts] = useState<any[]>(INITIAL_FEATURED_PRODUCTS);
   const [activeRole, setActiveRole] = useState<'FARMER' | 'CONSUMER' | 'RESTAURANT' | 'RETAILER'>('FARMER');
-  const [previewPublicLanding, setPreviewPublicLanding] = useState(false);
   const [isSwitchingPersona, setIsSwitchingPersona] = useState(false);
   const [selectedEscrowProduct, setSelectedEscrowProduct] = useState<any | null>(null);
 
@@ -165,54 +165,86 @@ export default function HomePage() {
 
   const roleDetails = {
     FARMER: {
-      tag: 'For Farmers & FPOs',
-      title: 'Sell Directly at Fair Farmgate Rates',
-      desc: 'Keep the 35% to 45% margin that middleman cartels usually take. Set your own prices with APMC mandi AI guidance, accept buyer bids, and get paid straight to your bank account via digital escrow.',
-      bullets: [
-        'Zero commission auction fees',
-        'Direct escrow deposit in your bank within 2 hours of delivery',
-        'Transparent bidding from restaurants and supermarkets',
-      ],
-      ctaText: 'List Your Harvest as Farmer',
+      tag: language === 'mr' ? 'शेतकरी व एफपीओ साठी' : language === 'hi' ? 'किसानों और एफपीओ के लिए' : 'For Farmers & FPOs',
+      title: language === 'mr' ? 'थेट शेतातून योग्य दरात शेतमाल विका' : language === 'hi' ? 'खेत से सीधे सही दाम पर उपज बेचें' : 'Sell Directly at Fair Farmgate Rates',
+      desc: language === 'mr' 
+        ? 'दलालांचे ३५% ते ४५% कमिशन वाचवा. एपीएमसी मंडी एआय मार्गदर्शनाने स्वतःचे दर ठरवा आणि सुरक्षित एस्क्रो द्वारे थेट बँक खात्यात पैसे मिळवा.'
+        : language === 'hi'
+        ? 'बिचौलियों का 35% से 45% कमीशन बचाएं। एपीएमसी मंडी एआई मार्गदर्शन से अपने भाव तय करें और सीधे बैंक खाते में भुगतान प्राप्त करें।'
+        : 'Keep the 35% to 45% margin that middleman cartels usually take. Set your own prices with APMC mandi AI guidance, accept buyer bids, and get paid straight to your bank account via digital escrow.',
+      bullets: language === 'mr' 
+        ? ['०% लिलाव कमिशन फी', 'माल पोहोचल्यावर २ तासांत बँक खात्यात पैसे जमा', 'हॉटेल्स आणि सुपरमार्ट्स कडून थेट पारदर्शक डिजिटल बोली']
+        : language === 'hi'
+        ? ['0% नीलामी कमीशन शुल्क', 'डिलीवरी के 2 घंटे के भीतर सीधे बैंक में एस्क्रो ट्रांसफर', 'रेस्तरां और सुपरमार्केट्स से पारदर्शी डिजिटल बोलियां']
+        : [
+            'Zero commission auction fees',
+            'Direct escrow deposit in your bank within 2 hours of delivery',
+            'Transparent bidding from restaurants and supermarkets',
+          ],
+      ctaText: t.sellHarvest,
       ctaUrl: '/farmer/produce/new',
       demoUserId: 'user-farmer-ramesh',
     },
     CONSUMER: {
-      tag: 'For Households & Individuals',
-      title: 'Farm-Fresh Produce Delivered Direct',
-      desc: 'Get vegetables and fruits harvested that morning from verified Maharashtra farms. No artificial waxing, no cold-storage delay, and no 100% retail grocery markup.',
-      bullets: [
-        'Delivered within 24 to 36 hours of harvest',
-        'Know the exact farmer, village, and harvest date',
-        'Certified organic and chemical-tested options',
-      ],
-      ctaText: 'Shop Farm Fresh Produce',
+      tag: language === 'mr' ? 'कुटुंबे आणि ग्राहकांसाठी' : language === 'hi' ? 'परिवारों और उपभोक्ताओं के लिए' : 'For Households & Individuals',
+      title: language === 'mr' ? 'थेट शेतातून ताजा भाजीपाला घरात' : language === 'hi' ? 'खेत से सीधे ताज़ी सब्जियां घर तक' : 'Farm-Fresh Produce Delivered Direct',
+      desc: language === 'mr'
+        ? 'त्याच सकाळी काढलेला भाजीपाला आणि फळे मिळवा. कोणतेही कृत्रिम वॅक्स नाही, कोल्ड स्टोरेजचा विलंब नाही आणि अतिरिक्त किरकोळ नफेखोरी नाही.'
+        : language === 'hi'
+        ? 'उसी सुबह तोड़ी गई सब्जियां और फल सीधे अपने घर पाएं। कोई रासायनिक मोम नहीं, कोई पुराना कोल्ड स्टोरेज नहीं।'
+        : 'Get vegetables and fruits harvested that morning from verified Maharashtra farms. No artificial waxing, no cold-storage delay, and no 100% retail grocery markup.',
+      bullets: language === 'mr'
+        ? ['काढणीनंतर २४ ते ३६ तासांत घरपोच', 'शेतकऱ्याचे नाव, गाव आणि काढणीची तारीख स्पष्ट माहिती', 'सेंद्रिय व प्रमाणित शेतमालाचे पर्याय']
+        : language === 'hi'
+        ? ['कटाई के 24 से 36 घंटे में डिलीवरी', 'किसान का नाम, गांव और तारीख की पूरी जानकारी', 'प्रमाणित जैविक उत्पाद उपलब्ध']
+        : [
+            'Delivered within 24 to 36 hours of harvest',
+            'Know the exact farmer, village, and harvest date',
+            'Certified organic and chemical-tested options',
+          ],
+      ctaText: t.browseProduce,
       ctaUrl: '/marketplace',
       demoUserId: 'user-consumer-priya',
     },
     RESTAURANT: {
-      tag: 'For Restaurants & Commercial Kitchens',
-      title: 'Consistent Wholesale Quality with 25% Savings',
-      desc: 'Source uniform Grade-A produce with scheduled morning delivery. Eliminate daily early-morning mandi visits and cut food procurement costs by 20% to 28%.',
-      bullets: [
-        'Standardized culinary grades and sizes',
-        'GST compliant digital invoices',
-        'Reliable 4°C cold chain transportation',
-      ],
-      ctaText: 'Explore Commercial Procurement',
+      tag: language === 'mr' ? 'हॉटेल्स आणि व्यावसायिक किचनसाठी' : language === 'hi' ? 'रेस्तरां और व्यावसायिक रसोई के लिए' : 'For Restaurants & Commercial Kitchens',
+      title: language === 'mr' ? '२५% बचतीसह उच्च दर्जाचा शेतमाल' : language === 'hi' ? '25% बचत के साथ उच्चतम ग्रेड उत्पाद' : 'Consistent Wholesale Quality with 25% Savings',
+      desc: language === 'mr'
+        ? 'सकाळी ठरलेल्या वेळेत थेट शेतामधून ग्रेड-ए शेतमाल मिळवा. पहाटेच्या मंडीच्या फेऱ्या बंद करा आणि भाजीपाल्यावरील खर्च २०% ते २८% कमी करा.'
+        : language === 'hi'
+        ? 'सुबह निर्धारित समय पर ग्रेड-ए उत्पाद प्राप्त करें। रोज़ की मंडी भागदौड़ बंद करें और खरीद लागत 20% से 28% घटाएं।'
+        : 'Source uniform Grade-A produce with scheduled morning delivery. Eliminate daily early-morning mandi visits and cut food procurement costs by 20% to 28%.',
+      bullets: language === 'mr'
+        ? ['प्रमाणित आकार आणि किचन ग्रेडिंग', 'जीएसटी (GST) कर बीजक पावती', 'विश्वसनीय ४°C शीत साखळी वाहतूक व्यवस्था']
+        : language === 'hi'
+        ? ['सटीक ग्रेड और आकार मानकीकरण', 'जीएसटी युक्त डिजिटल बिलिंग', 'विश्वसनीय कोल्ड चेन परिवहन']
+        : [
+            'Standardized culinary grades and sizes',
+            'GST compliant digital invoices',
+            'Reliable 4°C cold chain transportation',
+          ],
+      ctaText: language === 'mr' ? 'घाऊक शेतमाल खरेदी' : language === 'hi' ? 'थोक खरीद देखें' : 'Explore Commercial Procurement',
       ctaUrl: '/marketplace',
       demoUserId: 'user-buyer-greenbite',
     },
     RETAILER: {
-      tag: 'For Retail Supermarkets & Agro-Processors',
-      title: 'Multi-Ton Bulk Supply from Regional Hubs',
-      desc: 'Procure 5-ton to 50-ton truckloads aggregated at temperature-controlled hubs in Pune, Nashik, Satara, and Kolhapur with automated quality inspection reports.',
-      bullets: [
-        'Direct farmgate contracts with verified grower clusters',
-        'Standardized QA grading certificates',
-        'Consolidated freight and regional cold storage',
-      ],
-      ctaText: 'Access Processor Bulk Portal',
+      tag: language === 'mr' ? 'सुपरमार्केट्स आणि प्रक्रियादारांसाठी' : language === 'hi' ? 'सुपरमार्केट्स और एग्रो-प्रोसेसर्स के लिए' : 'For Retail Supermarkets & Agro-Processors',
+      title: language === 'mr' ? 'हबमधून अनेक टनांचा थेट पुरवठा' : language === 'hi' ? 'रीजनल हब से भारी टन आपूर्ति' : 'Multi-Ton Bulk Supply from Regional Hubs',
+      desc: language === 'mr'
+        ? 'पुणे, नाशिक, सातारा आणि कोल्हापूर येथील शीत केंद्रांवरून ५ ते ५० टन क्षमतेचे ट्रकलोड्स स्वयंचलित गुणवत्ता तपासणी अहवालासह मिळवा.'
+        : language === 'hi'
+        ? 'पुणे, नासिक, सतारा और कोल्हापुर के तापमान नियंत्रित हब से 5 से 50 टन की सीधी आपूर्ति प्राप्त करें।'
+        : 'Procure 5-ton to 50-ton truckloads aggregated at temperature-controlled hubs in Pune, Nashik, Satara, and Kolhapur with automated quality inspection reports.',
+      bullets: language === 'mr'
+        ? ['शेतकरी समूहांसोबत थेट शेतभाव करार', 'प्रमाणित गुणवत्ता तपासणी प्रमाणपत्रे', 'एकात्मिक प्रादेशिक शीत साठवणूक']
+        : language === 'hi'
+        ? ['सत्यापित उत्पादक समूहों के साथ अनुबंध', 'मानकीकृत गुणवत्ता प्रमाण पत्र', 'समेकित क्षेत्रीय शीत भंडारण']
+        : [
+            'Direct farmgate contracts with verified grower clusters',
+            'Standardized QA grading certificates',
+            'Consolidated freight and regional cold storage',
+          ],
+      ctaText: language === 'mr' ? 'प्रक्रियादार पोर्टल' : language === 'hi' ? 'प्रोसेसर पोर्टल' : 'Access Processor Bulk Portal',
       ctaUrl: '/processor/dashboard',
       demoUserId: 'user-retailer-omkar',
     },
@@ -221,321 +253,73 @@ export default function HomePage() {
   const currentRole = roleDetails[activeRole];
   const dashboardUrl = getRoleDashboardUrl(user?.role);
 
-  // =========================================================================
-  // VIEW A: PERSONALIZED ACTIVE WORKSPACE (Rendered when user is logged in)
-  // =========================================================================
-  if (user && !previewPublicLanding) {
-    const isFarmer = user.role === 'FARMER';
-    const isBuyer = ['CONSUMER', 'RESTAURANT', 'RETAILER', 'PROCESSOR', 'BUYER'].includes(user.role);
-
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Top Control Bar: Active Persona Badge + Switch to Public Landing Page */}
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="flex items-center gap-3">
-            <img
-              src={user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'}
-              alt={user.name}
-              className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500 shadow-sm"
-            />
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                  Welcome back, {user.name}
-                </h1>
-                <span className="text-xs font-black uppercase px-2.5 py-0.5 rounded-md font-mono bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
-                  ROLE: <strong>{user.role}</strong>
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Personalized Workspace &bull; {user.farmerProfile?.farmLocation || user.buyerProfile?.city || 'Maharashtra, India'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href={dashboardUrl}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-sm"
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Open Full {user.role} Dashboard</span>
-            </Link>
-
-            <button
-              onClick={() => setPreviewPublicLanding(true)}
-              className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 transition flex items-center gap-1.5"
-            >
-              <Eye className="w-4 h-4 text-slate-500" />
-              <span>Preview Public Landing Page</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Farmer-Specific Quick Command Center */}
-        {isFarmer && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-                  <span>Active Produce Batches</span>
-                  <Sprout className="w-4 h-4 text-emerald-600" />
-                </div>
-                <div className="text-2xl font-black text-slate-900 dark:text-white">4 Active</div>
-                <div className="text-[11px] text-emerald-600 font-semibold mt-1">Ready for buyer bids</div>
-              </div>
-
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-                  <span>Incoming Buyer Bids</span>
-                  <ShoppingBag className="w-4 h-4 text-amber-600" />
-                </div>
-                <div className="text-2xl font-black text-slate-900 dark:text-white">7 Offers</div>
-                <div className="text-[11px] text-amber-600 font-semibold mt-1">Highest bid: ₹26/kg (Onion)</div>
-              </div>
-
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-                  <span>Escrow Payout Balance</span>
-                  <IndianRupee className="w-4 h-4 text-emerald-600" />
-                </div>
-                <div className="text-2xl font-black text-slate-900 dark:text-white">₹74,500</div>
-                <div className="text-[11px] text-emerald-600 font-semibold mt-1">Direct bank payout ready</div>
-              </div>
-
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-                  <span>Mandi Profit Advantage</span>
-                  <TrendingUp className="w-4 h-4 text-emerald-600" />
-                </div>
-                <div className="text-2xl font-black text-emerald-600">+42%</div>
-                <div className="text-[11px] text-slate-500 font-semibold mt-1">vs APMC commission mandi</div>
-              </div>
-            </div>
-
-            {/* Quick Actions Bar */}
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/farmer/produce/new"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-3 rounded-xl transition flex items-center gap-2 shadow-sm"
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>+ List New Harvest Produce</span>
-              </Link>
-
-              <Link
-                href="/farmer/bids"
-                className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-800 transition flex items-center gap-2"
-              >
-                <ShoppingBag className="w-4 h-4 text-amber-600" />
-                <span>View &amp; Accept Buyer Bids (7)</span>
-              </Link>
-
-              <Link
-                href="/farmer/insights"
-                className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-800 transition flex items-center gap-2"
-              >
-                <TrendingUp className="w-4 h-4 text-emerald-600" />
-                <span>Live APMC Price Intelligence</span>
-              </Link>
-
-              <Link
-                href="/farmer/payments"
-                className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-800 transition flex items-center gap-2"
-              >
-                <IndianRupee className="w-4 h-4 text-emerald-600" />
-                <span>Escrow Wallet &amp; Payouts</span>
-              </Link>
-            </div>
-
-            {/* Live Agro Weather Widget for District */}
-            <WeatherWidget />
-          </div>
-        )}
-
-        {/* Buyer-Specific Quick Command Center */}
-        {isBuyer && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-                  <span>Fresh Harvests Online</span>
-                  <Sprout className="w-4 h-4 text-emerald-600" />
-                </div>
-                <div className="text-2xl font-black text-slate-900 dark:text-white">
-                  {featuredProducts.length} Lots Available
-                </div>
-                <div className="text-[11px] text-emerald-600 font-semibold mt-1">Direct from Maharashtra farms</div>
-              </div>
-
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-                  <span>Cost Saved vs Retail</span>
-                  <IndianRupee className="w-4 h-4 text-emerald-600" />
-                </div>
-                <div className="text-2xl font-black text-emerald-600">-28% Average</div>
-                <div className="text-[11px] text-slate-500 font-semibold mt-1">Zero retail broker markups</div>
-              </div>
-
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-                  <span>Next Delivery Window</span>
-                  <Clock className="w-4 h-4 text-sky-600" />
-                </div>
-                <div className="text-2xl font-black text-slate-900 dark:text-white">Tomorrow 7:00 AM</div>
-                <div className="text-[11px] text-sky-600 font-semibold mt-1">Refrigerated farmgate transit</div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/marketplace"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-3 rounded-xl transition flex items-center gap-2 shadow-sm"
-              >
-                <ShoppingBag className="w-4 h-4" />
-                <span>Browse Full Marketplace Catalog</span>
-              </Link>
-
-              <Link
-                href="/buyer/orders"
-                className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-800 transition flex items-center gap-2"
-              >
-                <Truck className="w-4 h-4 text-sky-600" />
-                <span>Track My Active Orders</span>
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Live Marketplace Produce Feed */}
-        <div className="space-y-4 pt-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-black text-slate-900 dark:text-white">
-                Live Farmgate Produce Available Right Now
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Harvested within 24 hours &bull; Verified Maharashtra Farmers &bull; Direct Digital Escrow
-              </p>
-            </div>
-            <Link
-              href="/marketplace"
-              className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
-            >
-              <span>View all listings</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {featuredProducts.map((p) => (
-              <div
-                key={p.id}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between"
-              >
-                <div>
-                  <div className="relative h-44 w-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                    <img
-                      src={p.images?.[0]?.url || 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800'}
-                      alt={p.cropName}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-white px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider font-mono">
-                      Grade {p.grade}
-                    </div>
-                    {p.isOrganic && (
-                      <div className="absolute top-3 right-3 bg-emerald-600 text-white px-2.5 py-1 rounded-md text-[10px] font-bold">
-                        Organic
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-4 space-y-2">
-                    <div className="flex items-baseline justify-between">
-                      <h3 className="font-bold text-sm text-slate-900 dark:text-white truncate">
-                        {p.cropName}
-                      </h3>
-                      <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
-                        ₹{p.pricePerKg}/{p.unit || 'kg'}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
-                      {p.variety}
-                    </p>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-slate-400" />
-                        <span>{p.farmLocation}</span>
-                      </span>
-                      <span>{p.quantity} {p.unit || 'kg'} left</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 pt-0 space-y-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Link
-                      href={`/products/${p.id}`}
-                      className="text-center bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 font-bold py-2 rounded-xl text-xs transition block"
-                    >
-                      View &amp; Bid
-                    </Link>
-
-                    <button
-                      onClick={() => setSelectedEscrowProduct(p)}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1 shadow-xs"
-                    >
-                      <QrCode className="w-3.5 h-3.5" />
-                      <span>{t.payWithUPI}</span>
-                    </button>
-                  </div>
-
-                  <WhatsAppShare
-                    cropName={p.cropName}
-                    variety={p.variety}
-                    pricePerKg={p.pricePerKg}
-                    farmerName={p.farmer?.user?.name || 'Maharashtra Farmer'}
-                    location={p.farmLocation}
-                    productId={p.id}
-                    unit={p.unit}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // =========================================================================
-  // VIEW B: HUMAN-DESIGNED EDITORIAL LANDING PAGE (Public / Preview Mode)
-  // =========================================================================
   return (
-    <div className="space-y-20 pb-16">
-      {/* If previewing public landing while logged in, provide a return banner */}
-      {user && previewPublicLanding && (
-        <div className="bg-emerald-600 text-white text-xs font-bold py-2.5 px-4 text-center flex items-center justify-center gap-2">
-          <span>Viewing Public Landing Page Preview.</span>
-          <button
-            onClick={() => setPreviewPublicLanding(false)}
-            className="bg-white text-emerald-900 px-3 py-1 rounded-md text-xs font-black hover:bg-emerald-50 transition"
-          >
-            &larr; Back to My Personalized Workspace
-          </button>
-        </div>
+    <div className="space-y-16 pb-16">
+      {/* ======================================================== */}
+      {/* 0. LOGGED-IN WORKSPACE BANNER (Shown when user is active) */}
+      {/* ======================================================== */}
+      {user && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div className="bg-gradient-to-r from-emerald-900 via-slate-900 to-slate-950 text-white rounded-3xl p-5 sm:p-6 border border-emerald-500/30 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <img
+                src={user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'}
+                alt={user.name}
+                className="w-12 h-12 rounded-2xl object-cover border-2 border-emerald-400 shadow-md shrink-0"
+              />
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-black tracking-tight text-white">
+                    {language === 'mr' ? `स्वागत आहे, ${user.name}` : language === 'hi' ? `स्वागत है, ${user.name}` : `Welcome, ${user.name}`}
+                  </h2>
+                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                    {user.role}
+                  </span>
+                </div>
+                <p className="text-xs text-emerald-200/80">
+                  {user.farmerProfile?.farmLocation || user.buyerProfile?.city || 'Maharashtra, India'} &bull; {language === 'mr' ? 'सक्रिय खाते' : language === 'hi' ? 'सक्रिय खाता' : 'Active Profile'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 w-full md:w-auto">
+              <Link
+                href={dashboardUrl}
+                className="flex-1 md:flex-initial bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20"
+              >
+                <LayoutDashboard className="w-4 h-4 text-slate-950" />
+                <span>{language === 'mr' ? 'माझा डॅशबोर्ड' : language === 'hi' ? 'मेरा डैशबोर्ड' : 'Open Dashboard'}</span>
+              </Link>
+              {user.role === 'FARMER' ? (
+                <Link
+                  href="/farmer/produce/new"
+                  className="flex-1 md:flex-initial bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-4 py-2.5 rounded-xl border border-white/20 transition flex items-center justify-center gap-1.5"
+                >
+                  <PlusCircle className="w-4 h-4 text-emerald-400" />
+                  <span>{t.sellProduce}</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/marketplace"
+                  className="flex-1 md:flex-initial bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-4 py-2.5 rounded-xl border border-white/20 transition flex items-center justify-center gap-1.5"
+                >
+                  <ShoppingBag className="w-4 h-4 text-emerald-400" />
+                  <span>{t.browseProduce}</span>
+                </Link>
+              )}
+            </div>
+          </div>
+        </section>
       )}
 
       {/* ======================================================== */}
-      {/* 1. HERO SECTION: CRISP, HIGH-CONTRAST, HUMAN-CRAFTED     */}
+      {/* 1. HERO SECTION: CRISP, HIGH-CONTRAST, EDITORIAL         */}
       {/* ======================================================== */}
-      <section className="relative pt-8 sm:pt-14 pb-12 sm:pb-16 border-b border-slate-200 dark:border-slate-800">
+      <section className="relative pt-6 sm:pt-10 pb-8 sm:pb-12 border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Column: Sharp Editorial Headline & CTAs */}
-            <div className="lg:col-span-7 space-y-6 text-left">
+            <div className="lg:col-span-7 space-y-5 text-left">
               <div className="inline-flex items-center gap-2 bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold px-3 py-1 rounded-full">
                 <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400"></span>
                 <span>{t.heroBadge}</span>
@@ -570,7 +354,7 @@ export default function HomePage() {
               </div>
 
               {/* Key Highlights */}
-              <div className="pt-4 grid grid-cols-3 gap-3 max-w-lg">
+              <div className="pt-2 grid grid-cols-3 gap-3 max-w-lg">
                 <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
                   <span className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-400 block">
                     +42%
@@ -588,8 +372,8 @@ export default function HomePage() {
                   </span>
                 </div>
                 <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
-                  <span className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 block">
-                    2 Hours
+                  <span className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-400 block">
+                    &lt; 2h
                   </span>
                   <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 block">
                     {t.escrowPayout}
@@ -598,36 +382,43 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Column: Crystal-Clear Photograph with Real Context Card */}
-            <div className="lg:col-span-5 relative">
-              <div className="relative rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl bg-slate-100 dark:bg-slate-900">
-                <img
-                  src="https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=1000&q=90"
-                  alt="Verified Maharashtra Farmer with Fresh Harvest"
-                  className="w-full h-[420px] object-cover object-center"
-                />
+            {/* Right Column: Real Farmer Vignette Card */}
+            <div className="lg:col-span-5">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl space-y-5">
+                <div className="relative rounded-2xl overflow-hidden aspect-[4/3] bg-slate-100 dark:bg-slate-800">
+                  <img
+                    src="https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=800"
+                    alt="Maharashtra Farmer in Field"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>{t.verifiedProducer}</span>
+                  </div>
+                </div>
 
-                {/* Clear Floating Harvest Info Pill */}
-                <div className="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-lg text-slate-900 dark:text-white space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>Verified Maharashtra Producer</span>
-                    </span>
-                    <span className="text-[11px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded font-mono font-bold">
-                      Grade-A Fresh
-                    </span>
-                  </div>
-                  <div className="flex items-baseline justify-between pt-1">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-black text-sm text-slate-900 dark:text-white">Ramesh Patil</h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">Manchar, Pune (8.5 Acres)</p>
+                      <h3 className="font-black text-base text-slate-900 dark:text-white">
+                        Ramesh Patil
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Manchar, Pune &bull; 8.5 Acres
+                      </p>
                     </div>
-                    <div className="text-right">
-                      <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">₹18/kg</span>
-                      <span className="text-[10px] text-slate-400 line-through ml-1">Retail ₹38</span>
-                    </div>
+                    <span className="bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-black px-2.5 py-1 rounded-md">
+                      4.9 &starf;
+                    </span>
                   </div>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                    &ldquo;{language === 'mr' 
+                      ? 'मी आधी टोमॅटो वाशी आणि पुणे मंडीत पाठवायचो. १८% कमिशन आणि तोलमापात नुकसान व्हायचे. किसानडायरेक्टमुळे मला थेट मुंबईच्या सुपरमार्केट्सकडून २०% जास्तीचा भाव मिळतो आणि २ तासांत बँक जमा होते.'
+                      : language === 'hi'
+                      ? 'पहले टमाटर मंडी में बेचने पर 18% दलाली कट जाती थी। किसानडायरेक्ट से मुझे सीधे मुंबई के सुपरमार्केट्स से 20% अधिक भाव मिलता है और तुरंत भुगतान आता है।'
+                      : 'I used to lose 18% to commissions and transport deductions at Pune APMC. With KisanDirect, my tomatoes sell directly to Mumbai supermarkets at +20% higher rates with instant escrow release.'}&rdquo;
+                  </p>
                 </div>
               </div>
             </div>
@@ -636,69 +427,62 @@ export default function HomePage() {
       </section>
 
       {/* ======================================================== */}
-      {/* 2. ROLE SELECTION MATRIX: BOLD ROLES & INSTANT TEST DRIVE */}
+      {/* 1B. LIVE AGRO WEATHER & ADVISORY WIDGET (OPEN-METEO)      */}
       {/* ======================================================== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-left space-y-1 mb-6">
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-            Tailored For You
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-            Select Your Role in the Agricultural Value Chain
-          </h2>
-        </div>
+        <WeatherWidget />
+      </section>
 
-        {/* Role Switcher Tabs with BOLD ROLES */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-6">
-          {[
-            { key: 'FARMER', label: 'FARMER', icon: Sprout, sub: 'Cultivator / FPO' },
-            { key: 'CONSUMER', label: 'CONSUMER', icon: ShoppingBag, sub: 'Household Buyer' },
-            { key: 'RESTAURANT', label: 'RESTAURANT', icon: Utensils, sub: 'Commercial Kitchen' },
-            { key: 'RETAILER', label: 'RETAILER', icon: Store, sub: 'Supermarket / Co.' },
-          ].map((item) => {
-            const Icon = item.icon;
-            const isSelected = activeRole === item.key;
-            return (
-              <button
-                key={item.key}
-                onClick={() => setActiveRole(item.key as any)}
-                className={`p-4 rounded-2xl border text-left transition-all ${
-                  isSelected
-                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-md scale-[1.02]'
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-emerald-400'
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-emerald-600 dark:text-emerald-400'}`} />
-                  <span className="text-sm font-black uppercase tracking-wider font-mono">
-                    <strong>{item.label}</strong>
-                  </span>
-                </div>
-                <span className={`text-[11px] block ${isSelected ? 'text-emerald-100' : 'text-slate-500 dark:text-slate-400'}`}>
-                  {item.sub}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+      {/* ======================================================== */}
+      {/* 2. PERSONA-BASED BENEFIT SELECTOR                       */}
+      {/* ======================================================== */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="border border-slate-200 dark:border-slate-800 rounded-3xl bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+          {/* Persona Tabs */}
+          <div className="grid grid-cols-2 md:grid-cols-4 border-b border-slate-200 dark:border-slate-800">
+            {(
+              [
+                { role: 'FARMER', label: t.roleFarmer, icon: Sprout },
+                { role: 'CONSUMER', label: t.roleConsumer, icon: ShoppingBag },
+                { role: 'RESTAURANT', label: t.roleRestaurant, icon: Utensils },
+                { role: 'RETAILER', label: t.roleRetailer, icon: Store },
+              ] as const
+            ).map((tab) => {
+              const Icon = tab.icon;
+              const isSelected = activeRole === tab.role;
+              return (
+                <button
+                  key={tab.role}
+                  onClick={() => setActiveRole(tab.role)}
+                  className={`p-4 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition border-b-2 ${
+                    isSelected
+                      ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20'
+                      : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${isSelected ? 'text-emerald-600 dark:text-emerald-400' : ''}`} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
-        {/* Active Role Content Card */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+          {/* Persona Content Body */}
+          <div className="p-6 sm:p-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-center text-left">
             <div className="md:col-span-8 space-y-4">
-              <div className="inline-block bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-black uppercase px-2.5 py-0.5 rounded font-mono">
-                ROLE: <strong>{activeRole}</strong>
-              </div>
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-mono">
+                {currentRole.tag}
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
                 {currentRole.title}
-              </h3>
+              </h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                 {currentRole.desc}
               </p>
 
-              <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300 pt-1">
-                {currentRole.bullets.map((b, idx) => (
-                  <li key={idx} className="flex items-center gap-2 font-medium">
+              <ul className="space-y-2 pt-2 text-xs text-slate-700 dark:text-slate-300">
+                {currentRole.bullets.map((b, i) => (
+                  <li key={i} className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                     <span>{b}</span>
                   </li>
@@ -714,7 +498,6 @@ export default function HomePage() {
                 {currentRole.ctaText}
               </Link>
 
-              {/* 1-Click Instant Demo Persona Activation */}
               <button
                 onClick={() => handleQuickPersonaSwitch(activeRole)}
                 disabled={isSwitchingPersona}
@@ -734,13 +517,13 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-left space-y-1 mb-6">
           <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-            Transparent Market Economics
+            {language === 'mr' ? 'पारदर्शक बाजार अर्थशास्त्र' : language === 'hi' ? 'पारदर्शी बाज़ार अर्थशास्त्र' : 'Transparent Market Economics'}
           </span>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-            Direct Farmgate vs Middleman APMC Price Comparison
+            {t.mandiComparison}
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Real data indexed from Maharashtra Mandis. Farmers earn more, while buyers pay significantly less.
+            {t.mandiSubtitle}
           </p>
         </div>
 
@@ -749,14 +532,14 @@ export default function HomePage() {
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-[11px] uppercase font-mono font-bold text-slate-500">
                 <tr>
-                  <th className="p-4">Commodity / Crop</th>
-                  <th className="p-4">Benchmark Mandi</th>
-                  <th className="p-4 text-rose-600">APMC Trader Price</th>
+                  <th className="p-4">{t.colCrop}</th>
+                  <th className="p-4">{t.colMandi}</th>
+                  <th className="p-4 text-rose-600">{t.colTraderPrice}</th>
                   <th className="p-4 text-emerald-600 dark:text-emerald-400 bg-emerald-50/60 dark:bg-emerald-950/40">
-                    KisanDirect Farmgate
+                    {t.colFarmgatePrice}
                   </th>
-                  <th className="p-4">Retail Supermarket</th>
-                  <th className="p-4 text-right">Farmer Benefit</th>
+                  <th className="p-4">{t.colRetailPrice}</th>
+                  <th className="p-4 text-right">{t.colFarmerBenefit}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -773,7 +556,7 @@ export default function HomePage() {
                       <td className="p-4 text-slate-400 line-through">₹{item.retailPrice}/{item.unit}</td>
                       <td className="p-4 text-right">
                         <span className="inline-block bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold px-2 py-0.5 rounded text-xs">
-                          +{gain}% Income
+                          +{gain}% {language === 'mr' ? 'नफा' : language === 'hi' ? 'मुनाफा' : 'Income'}
                         </span>
                       </td>
                     </tr>
@@ -788,14 +571,14 @@ export default function HomePage() {
       {/* ======================================================== */}
       {/* 3B. INTERACTIVE DIRECT FARMGATE PROFIT CALCULATOR        */}
       {/* ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="profit-calculator" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ProfitCalculator />
       </section>
 
       {/* ======================================================== */}
       {/* 3C. AI CROP LEAF DISEASE & PEST DIAGNOSTICS SCANNER      */}
       {/* ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="crop-scanner" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <CropDiseaseScanner />
       </section>
 
@@ -806,17 +589,17 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-2">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-              Direct From The Soil
+              {t.verifiedLotsSubtitle}
             </span>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              Verified Maharashtra Fresh Produce Lots
+              {t.verifiedLots}
             </h2>
           </div>
           <Link
             href="/marketplace"
             className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
           >
-            <span>View all produce listings</span>
+            <span>{t.viewAllLots}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -863,7 +646,7 @@ export default function HomePage() {
                       <MapPin className="w-3.5 h-3.5 text-slate-400" />
                       <span>{p.farmLocation}</span>
                     </span>
-                    <span className="font-bold">{p.quantity} {p.unit || 'kg'} available</span>
+                    <span className="font-bold">{p.quantity} {p.unit || 'kg'} {t.available}</span>
                   </div>
                 </div>
               </div>
@@ -872,14 +655,14 @@ export default function HomePage() {
                 <div className="grid grid-cols-2 gap-2">
                   <Link
                     href={`/products/${p.id}`}
-                    className="text-center bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 font-bold py-2.5 rounded-xl text-xs transition block"
+                    className="text-center bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2.5 rounded-xl text-xs transition block"
                   >
-                    View Details
+                    {t.viewDetails}
                   </Link>
 
                   <button
                     onClick={() => setSelectedEscrowProduct(p)}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1 shadow-xs"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1 shadow-xs active:scale-95"
                   >
                     <QrCode className="w-3.5 h-3.5" />
                     <span>{t.payWithUPI}</span>
@@ -907,10 +690,10 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-left space-y-1 mb-8">
           <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-            Direct Pipeline
+            {t.directPipeline}
           </span>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-            How KisanDirect Eliminates Middleman Exploitation
+            {t.howItWorksHeadline}
           </h2>
         </div>
 
@@ -918,23 +701,23 @@ export default function HomePage() {
           {[
             {
               step: '01',
-              title: 'Farmer Lists Produce',
-              desc: 'Farmer uploads crop photos, estimated quantity, and harvest date. AI suggests fair benchmark pricing based on APMC mandi feeds.',
+              title: t.step1Title,
+              desc: t.step1Desc,
             },
             {
               step: '02',
-              title: 'Transparent Buyer Bidding',
-              desc: 'Households, restaurants, and supermarkets review lots and place binding digital bids with zero commission cuts.',
+              title: t.step2Title,
+              desc: t.step2Desc,
             },
             {
               step: '03',
-              title: 'Escrow Lock & Pickup',
-              desc: 'Buyer funds are locked in digital escrow. Temperature-controlled transit picks up from the farmgate or regional hub.',
+              title: t.step3Title,
+              desc: t.step3Desc,
             },
             {
               step: '04',
-              title: 'Instant Escrow Release',
-              desc: 'Quality is verified via digital QA checklist on delivery. Funds are transferred to the cultivator’s bank account in under 2 hours.',
+              title: t.step4Title,
+              desc: t.step4Desc,
             },
           ].map((item, idx) => (
             <div
@@ -962,13 +745,13 @@ export default function HomePage() {
         <div className="bg-slate-900 text-white rounded-3xl p-8 sm:p-10 border border-slate-800 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-2 text-left">
             <span className="text-xs font-black uppercase tracking-wider text-emerald-400 font-mono">
-              ENGINEERED BY COMPANY ANOS
+              {t.anosBadge}
             </span>
             <h3 className="text-xl sm:text-2xl font-black">
-              Crafted by Kuber Narute and his team
+              {t.anosTitle}
             </h3>
             <p className="text-xs sm:text-sm text-slate-400 max-w-xl leading-relaxed">
-              KisanDirect is developed by AnoS to transform agricultural supply chains across Maharashtra. Review full architectural specifications, API integrations, and developer documentation.
+              {t.anosDesc}
             </p>
           </div>
 
@@ -976,13 +759,15 @@ export default function HomePage() {
             href="/documentation"
             className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-6 py-3.5 rounded-xl transition flex items-center gap-2 shadow-sm shrink-0"
           >
-            <span>Read Technical Documentation</span>
+            <span>{t.readDocs}</span>
             <ExternalLink className="w-4 h-4" />
           </Link>
         </div>
       </section>
 
-      {/* Instant UPI Escrow QR Modal */}
+      {/* ======================================================== */}
+      {/* 7. INSTANT UPI ESCROW QR MODAL (ALWAYS MOUNTED)         */}
+      {/* ======================================================== */}
       {selectedEscrowProduct && (
         <UpiQrModal
           isOpen={!!selectedEscrowProduct}

@@ -20,6 +20,7 @@ import {
   MicOff,
   Volume2,
   VolumeX,
+  AlertCircle,
 } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n';
 
@@ -50,9 +51,10 @@ export default function AiChatModal() {
   // Voice State
   const [isListening, setIsListening] = useState(false);
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+  const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
 
-  // Sync with app language if user hasn't explicitly overridden
+  // Sync with app language
   useEffect(() => {
     if (appLang) {
       setLanguage(appLang);
@@ -88,16 +90,30 @@ export default function AiChatModal() {
         window.speechSynthesis.cancel();
       }
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch {}
       }
     };
+  }, []);
+
+  // Preload voices in browser
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
   }, []);
 
   // Speech Recognition (Voice Input)
   const toggleVoiceInput = () => {
     if (isListening) {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch {}
       }
       setIsListening(false);
       return;
@@ -105,14 +121,27 @@ export default function AiChatModal() {
 
     if (typeof window === 'undefined') return;
 
+    // Check Secure Context on mobile
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (!window.isSecureContext && !isLocal) {
+      setVoiceNotice(
+        language === 'mr'
+          ? 'मोबाईल ब्राऊझर सुरक्षेमुळे मायक्रोफोन फक्त HTTPS किंवा localhost वर चालतो. लॅपटॉपवर http://localhost:3000 वर चाचणी करा.'
+          : language === 'hi'
+          ? 'मोबाइल ब्राउज़र सुरक्षा के कारण माइक्रोफोन केवल HTTPS या localhost पर काम करता है। लैपटॉप पर http://localhost:3000 पर आज़माएं।'
+          : 'Mobile browsers restrict microphone access to HTTPS or localhost. Please test on laptop at http://localhost:3000 or enable Chrome insecure origin flag.'
+      );
+      return;
+    }
+
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert(
+      setVoiceNotice(
         language === 'mr'
-          ? 'तुमच्या ब्राऊझरमध्ये व्हॉइस इनपुट समर्थित नाही. कृपया Google Chrome किंवा Edge वापरा.'
+          ? 'तुमच्या ब्राऊझरमध्ये व्हॉइस इनपुट समर्थित नाही. कृपया Google Chrome वापरा.'
           : language === 'hi'
-          ? 'आपके ब्राउज़र में वॉइस इनपुट समर्थित नहीं है। कृपया Google Chrome या Edge का उपयोग करें।'
-          : 'Speech recognition is not supported in this browser. Please use Chrome or Edge.'
+          ? 'आपके ब्राउज़र में वॉइस इनपुट समर्थित नहीं है। कृपया Google Chrome उपयोग करें।'
+          : 'Speech recognition is not supported in this browser. Please use Chrome.'
       );
       return;
     }
@@ -128,19 +157,33 @@ export default function AiChatModal() {
 
       recognition.onstart = () => {
         setIsListening(true);
+        setVoiceNotice(null);
       };
 
       recognition.onresult = (event: any) => {
         let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
+        for (let i = 0; i < event.results.length; ++i) {
           transcript += event.results[i][0].transcript;
         }
-        setInput(transcript);
+        if (transcript) {
+          setInput(transcript);
+        }
       };
 
       recognition.onerror = (event: any) => {
         console.warn('Speech recognition error:', event.error);
         setIsListening(false);
+        if (event.error === 'not-allowed') {
+          setVoiceNotice(
+            language === 'mr'
+              ? 'मायक्रोफोन परवानगी नाकारली गेली आहे. कृपया ब्राऊझर सेटिंग्जमध्ये परवानगी द्या.'
+              : language === 'hi'
+              ? 'माइक्रोफोन अनुमति अस्वीकृत है। कृपया ब्राउज़र में अनुमति दें।'
+              : 'Microphone permission was denied. Please allow mic in browser settings.'
+          );
+        } else if (event.error !== 'no-speech') {
+          setVoiceNotice(`Speech error: ${event.error}`);
+        }
       };
 
       recognition.onend = () => {
@@ -151,6 +194,7 @@ export default function AiChatModal() {
     } catch (err) {
       console.error('Failed to initialize speech recognition', err);
       setIsListening(false);
+      setVoiceNotice('Could not initialize microphone. Please check permissions.');
     }
   };
 
@@ -167,6 +211,7 @@ export default function AiChatModal() {
       return;
     }
 
+    // Cancel previous utterance
     window.speechSynthesis.cancel();
 
     // Strip markdown formatting for cleaner speech
@@ -175,22 +220,44 @@ export default function AiChatModal() {
       .replace(/\*(.*?)\*/g, '$1')
       .replace(/\[(.*?)\]\(.*?\)/g, '$1')
       .replace(/•/g, '')
-      .replace(/🌱|🍅|🧅|💰|🌾|🏛️|⚡|📦|✅|⚠️|🎤/g, '');
+      .replace(/🌱|🍅|🧅|💰|🌾|🏛️|⚡|📦|✅|⚠️|🎤|👉|🔹/g, '')
+      .trim();
 
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = language === 'mr' ? 'mr-IN' : language === 'hi' ? 'hi-IN' : 'en-IN';
-    utterance.rate = 0.95; // Slightly slower for clear Indian pronunciation
+    // Chromium speech cancellation delay fix
+    setTimeout(() => {
+      try {
+        window.speechSynthesis.resume();
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = language === 'mr' ? 'mr-IN' : language === 'hi' ? 'hi-IN' : 'en-IN';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
 
-    utterance.onend = () => {
-      setSpeakingMessageId(null);
-    };
+        // Try to match available voices
+        const voices = window.speechSynthesis.getVoices();
+        if (voices && voices.length > 0) {
+          const target = language === 'mr' ? 'mr' : language === 'hi' ? 'hi' : 'en';
+          const matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(target));
+          if (matchedVoice) {
+            utterance.voice = matchedVoice;
+          }
+        }
 
-    utterance.onerror = () => {
-      setSpeakingMessageId(null);
-    };
+        utterance.onend = () => {
+          setSpeakingMessageId(null);
+        };
 
-    setSpeakingMessageId(messageId);
-    window.speechSynthesis.speak(utterance);
+        utterance.onerror = (e) => {
+          console.warn('Speech synthesis error:', e);
+          setSpeakingMessageId(null);
+        };
+
+        setSpeakingMessageId(messageId);
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.error('Speech synthesis failure:', err);
+        setSpeakingMessageId(null);
+      }
+    }, 80);
   };
 
   const handleSend = async (customQuery?: string) => {
@@ -199,7 +266,9 @@ export default function AiChatModal() {
 
     // Stop voice if still active
     if (isListening && recognitionRef.current) {
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch {}
       setIsListening(false);
     }
 
@@ -370,6 +439,20 @@ export default function AiChatModal() {
             </div>
           </div>
 
+          {/* Voice Notice / Insecure Context Banner */}
+          {voiceNotice && (
+            <div className="bg-amber-50 dark:bg-amber-950/50 border-b border-amber-200 dark:border-amber-800/60 px-4 py-2 text-[11px] text-amber-900 dark:text-amber-200 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div className="flex-1 leading-tight">{voiceNotice}</div>
+              <button
+                onClick={() => setVoiceNotice(null)}
+                className="text-amber-700 dark:text-amber-400 hover:text-amber-950"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-[#fcfdfa] dark:bg-stone-900">
             {messages.map((m) => {
@@ -409,21 +492,21 @@ export default function AiChatModal() {
                               type="button"
                               onClick={() => toggleSpeakMessage(m.content, m.id)}
                               title={isSpeaking ? 'Stop speaking' : 'Read aloud in voice'}
-                              className={`flex items-center gap-1 px-1.5 py-0.5 rounded transition ${
+                              className={`flex items-center gap-1 px-2 py-0.5 rounded transition ${
                                 isSpeaking 
-                                  ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-bold'
-                                  : 'hover:text-emerald-700 dark:hover:text-emerald-400'
+                                  ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 font-bold animate-pulse'
+                                  : 'hover:text-emerald-700 dark:hover:text-emerald-400 bg-slate-50 dark:bg-stone-700/60'
                               }`}
                             >
                               {isSpeaking ? (
                                 <>
-                                  <VolumeX className="w-3 h-3 text-amber-600 animate-pulse" />
-                                  <span>Stop</span>
+                                  <VolumeX className="w-3 h-3 text-amber-600" />
+                                  <span>Stop Voice</span>
                                 </>
                               ) : (
                                 <>
-                                  <Volume2 className="w-3 h-3" />
-                                  <span>Voice</span>
+                                  <Volume2 className="w-3 h-3 text-emerald-600" />
+                                  <span>Speak Out</span>
                                 </>
                               )}
                             </button>
