@@ -23,8 +23,89 @@ import PriceJourney from '@/components/price-journey';
 import AIPriceAssistant from '@/components/ai-price-assistant';
 import { formatINR } from '@/lib/utils';
 
+const INITIAL_FEATURED_PRODUCTS = [
+  {
+    id: 'prod-tomato-01',
+    cropName: 'Grade-A Tomato',
+    variety: 'Abhinav Hybrid (Table & Cooking)',
+    pricePerKg: 18,
+    quantity: 500,
+    unit: 'kg',
+    grade: 'A',
+    isOrganic: true,
+    farmLocation: 'Manchar-Narayangaon Belt, Pune',
+    farmer: { user: { name: 'Ramesh Patil' }, rating: 4.9 },
+    images: [{ url: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800' }],
+  },
+  {
+    id: 'prod-onion-02',
+    cropName: 'Nashik Red Onion',
+    variety: 'Garwa Lasalgaon Red (Long Storage)',
+    pricePerKg: 24,
+    quantity: 1200,
+    unit: 'kg',
+    grade: 'A',
+    isOrganic: false,
+    farmLocation: 'Lasalgaon Mandi Belt, Nashik',
+    farmer: { user: { name: 'Suresh Jadhav' }, rating: 4.8 },
+    images: [{ url: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=800' }],
+  },
+  {
+    id: 'prod-potato-03',
+    cropName: 'Satara Table Potato',
+    variety: 'Kufri Jyoti (Low Sugar, Firm)',
+    pricePerKg: 22,
+    quantity: 800,
+    unit: 'kg',
+    grade: 'A',
+    isOrganic: true,
+    farmLocation: 'Koregaon Agro Cluster, Satara',
+    farmer: { user: { name: 'Anita Pawar' }, rating: 4.95 },
+    images: [{ url: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800' }],
+  },
+  {
+    id: 'prod-chilli-06',
+    cropName: 'G4 Green Chilli',
+    variety: 'G4 Hot Green Pungent',
+    pricePerKg: 55,
+    quantity: 300,
+    unit: 'kg',
+    grade: 'A',
+    isOrganic: false,
+    farmLocation: 'Walwa, Sangli Agro Cluster',
+    farmer: { user: { name: 'Suresh Jadhav' }, rating: 4.8 },
+    images: [{ url: 'https://images.unsplash.com/photo-1588252303782-cb80119abd6d?w=800' }],
+  },
+  {
+    id: 'prod-wheat-04',
+    cropName: 'Sharbati Wheat',
+    variety: 'MP Sharbati Premium Golden Grain',
+    pricePerKg: 28,
+    quantity: 2500,
+    unit: 'kg',
+    grade: 'A_PLUS',
+    isOrganic: false,
+    farmLocation: 'Rahuri Agricultural Belt, Ahmednagar',
+    farmer: { user: { name: 'Mahesh Shinde' }, rating: 4.7 },
+    images: [{ url: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800' }],
+  },
+  {
+    id: 'prod-mango-07',
+    cropName: 'Alphonso Mango (Hapus)',
+    variety: 'GI-Tagged Straw Ripened Hapus',
+    pricePerKg: 140,
+    quantity: 400,
+    unit: 'kg',
+    grade: 'A_PLUS',
+    isOrganic: true,
+    farmLocation: 'Khed-Manchar / Ratnagiri Orchard',
+    farmer: { user: { name: 'Ramesh Patil' }, rating: 4.9 },
+    images: [{ url: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=800' }],
+  },
+];
+
 export default function HomePage() {
-  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<any[]>(INITIAL_FEATURED_PRODUCTS);
   const [mandiRates, setMandiRates] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [selectedJourneyCrop, setSelectedJourneyCrop] = useState({
@@ -43,7 +124,9 @@ export default function HomePage() {
 
         if (prodRes.ok) {
           const pData = await prodRes.json();
-          setFeaturedProducts((pData.products || []).slice(0, 4));
+          if (pData.products && pData.products.length > 0) {
+            setFeaturedProducts(pData.products.slice(0, 6));
+          }
         }
 
         if (mandiRes.ok) {
@@ -227,7 +310,7 @@ export default function HomePage() {
         </div>
 
         {/* Product Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredProducts.map((p) => {
             // Real Government APMC Mandi benchmark correlation
             const matchedMandi = mandiRates.find((m) =>

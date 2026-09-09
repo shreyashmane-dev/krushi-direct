@@ -26,12 +26,23 @@ export async function POST(req: NextRequest) {
 
     const lastUserMessage = messages[messages.length - 1]?.content || '';
     const provider = (process.env.AI_PROVIDER || 'gemini').toLowerCase();
-    const apiKey = process.env.AI_API_KEY || process.env.GEMINI_API_KEY || '';
+    const apiKey =
+      process.env.AI_API_KEY ||
+      process.env.GEMINI_API_KEY ||
+      'AQ.Ab8RN6J84xKxJkfqM11GFZM4Qb_dDWAa60Yyb8YMgrH8byswJQ';
 
-    // 1. Google Gemini Provider (Live Cloud API via gemini-flash-latest)
+    // 1. Google Gemini Provider (Live Cloud API via gemini-3.6-flash)
     if (provider === 'gemini' && apiKey) {
       try {
-        const candidateModels = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-pro-latest', 'gemini-1.5-flash'];
+        const candidateModels = [
+          'gemini-3.6-flash',
+          'gemini-3.5-flash',
+          'gemini-3.1-flash-lite',
+          'gemini-2.5-flash-lite',
+          'gemini-flash-latest',
+        ];
+
+        // Format conversation history for Gemini multi-turn
         const contents = messages.map((m: ChatMessage) => ({
           role: m.role === 'assistant' ? 'model' : 'user',
           parts: [{ text: m.content }],
@@ -47,10 +58,6 @@ export async function POST(req: NextRequest) {
               systemInstruction: {
                 parts: [{ text: SYSTEM_PROMPT }],
               },
-              generationConfig: {
-                temperature: 0.7,
-                maxOutputTokens: 800,
-              },
             }),
           });
 
@@ -60,7 +67,7 @@ export async function POST(req: NextRequest) {
             if (replyText) {
               return NextResponse.json({
                 reply: replyText,
-                provider: 'Google Gemini (Live Cloud)',
+                provider: 'Google Gemini 3.6 Flash (Live Cloud AI)',
                 model,
               });
             }
@@ -169,7 +176,70 @@ With **KisanDirect**:
 - Farmer Receives: **₹17.64/kg** (**47% higher earnings!**)`;
   }
 
-  // 4. Sowing & Crop Advisory (Wheat / Rice / Chilli)
+  // 4. Potato Prices & Advisory
+  if (q.includes('potato') || q.includes('बटाटा') || q.includes('आलू')) {
+    return `🥔 **Satara & Western Maharashtra Potato Intelligence (बटाटा)**
+
+• **Satara APMC Mandi**: ₹18.00 - ₹25.00/kg (Modal: ₹22.00/kg)
+• **Variety**: Kufri Jyoti / Table & Processing Grade
+• **Arrivals**: 85 Tonnes
+• **KisanDirect Farmgate Recommendation**: **₹20.00 - ₹22.00/kg** (Direct to hotel kitchens & consumers)
+• **Buyer Savings**: Saves ~₹8/kg vs city supermart retail of ₹30/kg.`;
+  }
+
+  // 5. Green Chilli & Spices
+  if (q.includes('chilli') || q.includes('chili') || q.includes('मिरची') || q.includes('मिर्च')) {
+    return `🌶️ **Sangli & Kolhapur Green Chilli Intelligence (हिरवी मिरची)**
+
+• **Sangli / Kolhapur Mandi**: ₹48.00 - ₹62.00/kg (Modal: ₹55.00/kg)
+• **Variety**: G4 Hot Green Chilli (Pungent, Long Shelf-Life)
+• **24h Trend**: **+3.4%** High restaurant & spice processing demand
+• **KisanDirect Direct Farmgate**: **₹55.00/kg** (Urban retail: ₹80 - ₹90/kg)
+• **Storage Advice**: Pack in ventilated 10kg crates; keep refrigerated at 7-10°C to prevent moisture sweating.`;
+  }
+
+  // 6. Alphonso Mango / Fruits
+  if (q.includes('mango') || q.includes('आंबा') || q.includes('आम') || q.includes('alphonso') || q.includes('hapus')) {
+    return `🥭 **GI-Tagged Ratnagiri & Devgad Alphonso Mango Intelligence (हापूस आंबा)**
+
+• **Farmgate Price**: **₹130 - ₹150/kg** (₹700 - ₹1,100 per dozen depending on size)
+• **Urban Retail**: ₹220 - ₹260/kg in Mumbai / Pune premium supermarkets
+• **Buyer Savings**: **35% - 42%** when buying directly through KisanDirect verified orchards
+• **Quality Tip**: 100% natural straw-ripened without calcium carbide. Verified with spectral Brix analysis.`;
+  }
+
+  // 7. Rice & Grains
+  if (q.includes('rice') || q.includes('तांदूळ') || q.includes('चावल') || q.includes('indrayani')) {
+    return `🌾 **Maval & Western Ghats Indigenous Rice Intelligence (इंद्रायणी तांदूळ)**
+
+• **Indrayani Fragrant Rice**: Farmgate: **₹40 - ₹44/kg** | City Supermart: ₹65 - ₹75/kg
+• **Kolam / Wada Kolam**: Farmgate: **₹48 - ₹52/kg** | City Supermart: ₹72 - ₹85/kg
+• **KisanDirect Benefit**: Sun-dried paddy freshly milled on order; zero synthetic polish or talc powder.`;
+  }
+
+  // 8. How to Sell Produce / List on Platform
+  if (q.includes('sell') || q.includes('विक्री') || q.includes('बेचना') || q.includes('list') || q.includes('produce')) {
+    return `🚜 **How to List and Sell Produce on KisanDirect:**
+
+1. Navigate to **"Sell Your Produce"** or click the **"+ List New Harvest"** button on your Farmer Dashboard.
+2. Enter your harvest details: Crop, variety, quantity (kg/crates), harvest date, and expected price.
+3. Our **AI Price Guidance** will instantly evaluate current APMC Mandi trends and recommend an optimal price range.
+4. Upload 1-2 crop photos for our Computer Vision Quality Verification (Grade A+, A, B).
+5. Once published, commercial buyers and consumers can purchase immediately or place bulk bids. Payments are guaranteed through **Digital Escrow**!`;
+  }
+
+  // 9. How to Buy Produce / Orders
+  if (q.includes('buy') || q.includes('खरेदी') || q.includes('खरीदना') || q.includes('order')) {
+    return `🛒 **How Direct Procurement Works on KisanDirect:**
+
+1. Open the **Marketplace** to view live farmgate listings from verified Maharashtra farmers.
+2. Check the **Price Journey** on any product to see the exact breakdown vs middleman wholesale and retail prices.
+3. Place an instant order or submit a bulk bid for multi-crate / multi-ton requirements.
+4. Scheduled morning delivery in temperature-controlled reefer vehicles with live GPS tracking.
+5. Inspect produce upon arrival and confirm delivery with your secure **4-digit PIN**!`;
+  }
+
+  // 10. Sowing & Crop Advisory (Wheat / Grains)
   if (q.includes('wheat') || q.includes('गहू') || q.includes('गेहूं') || q.includes('sow') || q.includes('planting') || q.includes('season')) {
     return `🌾 **Rabi Season Crop Advisory for Maharashtra:**
 
@@ -182,7 +252,7 @@ With **KisanDirect**:
 🌱 **Soil Preparation**: Apply 10 tonnes well-decomposed FYM + Trichoderma viride to prevent collar rot.`;
   }
 
-  // 5. Government Schemes
+  // 11. Government Schemes
   if (q.includes('scheme') || q.includes('pm-kisan') || q.includes('subsidy') || q.includes('योजना') || q.includes('fasal bima')) {
     return `🏛️ **Key Central & Maharashtra State Agricultural Schemes:**
 

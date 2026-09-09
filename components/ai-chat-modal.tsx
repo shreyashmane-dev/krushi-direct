@@ -47,7 +47,7 @@ export default function AiChatModal() {
       role: 'assistant',
       content: `🌱 **Namaste! I am KrushiMitra (कृषि मित्र) AI**, your agricultural intelligence assistant.\n\nI can help you with:\n• **Live APMC Mandi Prices** across Maharashtra\n• **Direct Farmgate Selling Advice** & Pricing\n• **Government Schemes** (PM-KISAN, PMFBY)\n• **Kharif & Rabi Crop Agronomy**\n\nHow can I help you today? You can ask in English, मराठी, or हिन्दी!`,
       timestamp: 'Just now',
-      provider: 'Google Gemini 1.5 Flash Ready',
+      provider: 'Google Gemini 3.6 Flash (Live Cloud AI)',
     },
   ]);
 
@@ -133,7 +133,7 @@ export default function AiChatModal() {
         role: 'assistant',
         content: `🌱 Chat refreshed! What agricultural or mandi price questions can I answer for you?`,
         timestamp: 'Just now',
-        provider: 'Google Gemini 1.5 Flash Ready',
+        provider: 'Google Gemini 3.6 Flash (Live Cloud AI)',
       },
     ]);
   };
