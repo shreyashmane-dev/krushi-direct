@@ -1,0 +1,347 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String          @id @default(uuid())
+  email         String          @unique
+  password      String
+  name          String
+  phone         String?
+  role          String          @default("CONSUMER") // FARMER, BUYER, CONSUMER, RESTAURANT, RETAILER, PROCESSOR, DELIVERY_PARTNER, ADMIN
+  avatar        String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  farmerProfile FarmerProfile?
+  buyerProfile  BuyerProfile?
+  
+  farmerOrders  Order[]         @relation("FarmerOrders")
+  buyerOrders   Order[]         @relation("BuyerOrders")
+  bids          Bid[]
+  notifications Notification[]
+  disputes      Dispute[]       @relation("UserDisputes")
+  reviewsGiven  Review[]        @relation("ReviewsGiven")
+  reviewsRecv   Review[]        @relation("ReviewsReceived")
+  sentMessages  Message[]       @relation("SentMessages")
+  recvMessages  Message[]       @relation("RecvMessages")
+  deliveries    Delivery[]      @relation("PartnerDeliveries")
+  settlements   Settlement[]
+}
+
+model FarmerProfile {
+  id                 String    @id @default(uuid())
+  userId             String    @unique
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  village            String?
+  district           String?
+  state              String?   @default("Maharashtra")
+  pinCode            String?
+  farmLocation       String?
+  farmSize           Float?    // in acres
+  cropsGrown         String?   // comma-separated
+  verificationStatus String    @default("PENDING") // PENDING, VERIFIED, REJECTED
+  bankAccount        String?
+  ifscCode           String?
+  bankName           String?
+  profileImage       String?
+  rating             Float     @default(4.8)
+  reviewsCount       Int       @default(0)
+  isOrganicCertified Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  products           Product[]
+}
+
+model BuyerProfile {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName    String?
+  businessType    String?   // INDIVIDUAL, RESTAURANT, RETAIL, PROCESSING
+  gstNumber       String?
+  deliveryAddress String?
+  city            String?
+  state           String?   @default("Maharashtra")
+  pinCode         String?
+  preferredCrops  String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  icon        String?
+  description String?
+  createdAt   DateTime  @default(now())
+
+  products    Product[]
+}
+
+model Product {
+  id                 String         @id @default(uuid())
+  farmerId           String
+  farmer             FarmerProfile  @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  cropName           String
+  categoryId         String
+  category           Category       @relation(fields: [categoryId], references: [id])
+  variety            String?
+  quantity           Float
+  unit               String         @default("kg") // kg, quintal, crate
+  grade              String         @default("A") // A_PLUS, A, B, C
+  pricePerKg         Float
+  minOrderQty        Float          @default(10)
+  harvestDate        DateTime?
+  availableDate      DateTime       @default(now())
+  expiryDays         Int            @default(7)
+  farmLocation       String
+  latitude           Float?
+  longitude          Float?
+  description        String?
+  isOrganic          Boolean        @default(false)
+  certification      String?
+  verificationStatus String         @default("VERIFIED") // PENDING, VERIFIED, REJECTED
+  status             String         @default("ACTIVE") // ACTIVE, PAUSED, SOLD_OUT
+  viewsCount         Int            @default(0)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  images             ProductImage[]
+  orderItems         OrderItem[]
+  bids               Bid[]
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id                   String       @id @default(uuid())
+  orderNumber          String       @unique
+  buyerId              String
+  buyer                User         @relation("BuyerOrders", fields: [buyerId], references: [id])
+  farmerId             String
+  farmer               User         @relation("FarmerOrders", fields: [farmerId], references: [id])
+  status               String       @default("CREATED") // CREATED, PAYMENT_PENDING, PAID, CONFIRMED, PACKED, READY_FOR_PICKUP, PICKED_UP, IN_TRANSIT, DELIVERED, COMPLETED, CANCELLED, REFUNDED
+  paymentStatus        String       @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  deliveryStatus       String       @default("ORDER_CONFIRMED") // ORDER_CONFIRMED, PICKUP_ASSIGNED, PICKED_UP, IN_TRANSIT, NEAR_DESTINATION, DELIVERED
+  subtotal             Float
+  platformFee          Float        @default(0)
+  deliveryFee          Float        @default(0)
+  taxes                Float        @default(0)
+  totalAmount          Float
+  shippingAddress      String
+  contactPhone         String?
+  notes                String?
+  expectedDeliveryDate DateTime?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  items                OrderItem[]
+  payment              Payment?
+  settlement           Settlement?
+  delivery             Delivery?
+  reviews              Review[]
+  disputes             Dispute[]
+  messages             Message[]
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  cropName   String
+  quantity   Float
+  unit       String   @default("kg")
+  unitPrice  Float
+  totalPrice Float
+}
+
+model Payment {
+  id                String   @id @default(uuid())
+  orderId           String   @unique
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  razorpaySignature String?
+  amount            Float
+  currency          String   @default("INR")
+  status            String   @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  method            String   @default("RAZORPAY_TEST")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Settlement {
+  id            String   @id @default(uuid())
+  farmerId      String
+  farmer        User     @relation(fields: [farmerId], references: [id])
+  orderId       String   @unique
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderAmount   Float
+  platformFee   Float
+  deliveryFee   Float
+  netSettlement Float
+  status        String   @default("PENDING") // PENDING, PROCESSING, PAID, FAILED
+  payoutDate    DateTime?
+  referenceNo   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Bid {
+  id           String   @id @default(uuid())
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  buyerId      String
+  buyer        User     @relation(fields: [buyerId], references: [id])
+  offeredPrice Float
+  quantity     Float
+  message      String?
+  status       String   @default("PENDING") // PENDING, ACCEPTED, REJECTED, COUNTERED, EXPIRED
+  counterPrice Float?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Delivery {
+  id                String    @id @default(uuid())
+  orderId           String    @unique
+  order             Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  deliveryPartnerId String?
+  partner           User?     @relation("PartnerDeliveries", fields: [deliveryPartnerId], references: [id])
+  trackingNumber    String    @unique
+  status            String    @default("ORDER_CONFIRMED") // ORDER_CONFIRMED, PICKUP_ASSIGNED, PICKED_UP, IN_TRANSIT, NEAR_DESTINATION, DELIVERED
+  pickupLocation    String
+  destination       String
+  currentLat        Float?
+  currentLng        Float?
+  eta               String?
+  pickupTime        DateTime?
+  deliveredTime     DateTime?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model CollectionCenter {
+  id                  String   @id @default(uuid())
+  name                String
+  address             String
+  city                String
+  district            String
+  state               String   @default("Maharashtra")
+  pinCode             String
+  contactPhone        String
+  workingHours        String   @default("7:00 AM - 7:00 PM")
+  storageCapacityKg   Float
+  availableCapacityKg Float
+  latitude            Float
+  longitude           Float
+  createdAt           DateTime @default(now())
+}
+
+model Review {
+  id           String   @id @default(uuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  reviewerId   String
+  reviewer     User     @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  targetUserId String
+  targetUser   User     @relation("ReviewsReceived", fields: [targetUserId], references: [id])
+  rating       Int      @default(5)
+  comment      String?
+  createdAt    DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("INFO") // ORDER, PAYMENT, DELIVERY, BID, AI_PRICE, SYSTEM
+  isRead    Boolean  @default(false)
+  linkUrl   String?
+  createdAt DateTime @default(now())
+}
+
+model Dispute {
+  id              String    @id @default(uuid())
+  orderId         String
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  raisedById      String
+  raisedBy        User      @relation("UserDisputes", fields: [raisedById], references: [id])
+  reason          String    // WRONG_QUANTITY, POOR_QUALITY, DAMAGED_PRODUCE, LATE_DELIVERY, PAYMENT_ISSUE, MISSING_PRODUCE, OTHER
+  description     String
+  status          String    @default("OPEN") // OPEN, UNDER_REVIEW, RESOLVED, REJECTED
+  resolutionNotes String?
+  resolvedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model PriceHistory {
+  id               String   @id @default(uuid())
+  cropName         String
+  grade            String   @default("A")
+  marketLocation   String
+  wholesalePrice   Float
+  retailPrice      Float
+  farmerModalPrice Float
+  date             DateTime @default(now())
+}
+
+model DemandForecast {
+  id              String   @id @default(uuid())
+  cropName        String   @unique
+  location        String   @default("Maharashtra")
+  demandTier      String   @default("HIGH") // HIGH, MEDIUM, LOW
+  delta7Days      Float    @default(12.5)
+  delta30Days     Float    @default(8.0)
+  confidenceScore Float    @default(85.0)
+  factors         String?
+  updatedAt       DateTime @default(now())
+}
+
+model AIRecommendation {
+  id                String   @id @default(uuid())
+  cropName          String
+  variety           String?
+  grade             String
+  location          String
+  suggestedMinPrice Float
+  suggestedMaxPrice Float
+  recommendedPrice  Float
+  confidenceScore   Float
+  reasoning         String
+  createdAt         DateTime @default(now())
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId String
+  receiver   User     @relation("RecvMessages", fields: [receiverId], references: [id])
+  orderId    String?
+  order      Order?   @relation(fields: [orderId], references: [id])
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
