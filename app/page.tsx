@@ -28,8 +28,13 @@ import {
   Sparkles,
   RefreshCw,
   ExternalLink,
+  QrCode,
 } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
+import { useLanguage } from '@/lib/i18n';
+import WeatherWidget from '@/components/weather-widget';
+import UpiQrModal from '@/components/upi-qr-modal';
+import WhatsAppShare from '@/components/whatsapp-share';
 
 const INITIAL_FEATURED_PRODUCTS = [
   {
@@ -123,10 +128,12 @@ const MANDI_BENCHMARKS = [
 
 export default function HomePage() {
   const { user, switchUser } = useAuth();
+  const { t, language } = useLanguage();
   const [featuredProducts, setFeaturedProducts] = useState<any[]>(INITIAL_FEATURED_PRODUCTS);
   const [activeRole, setActiveRole] = useState<'FARMER' | 'CONSUMER' | 'RESTAURANT' | 'RETAILER'>('FARMER');
   const [previewPublicLanding, setPreviewPublicLanding] = useState(false);
   const [isSwitchingPersona, setIsSwitchingPersona] = useState(false);
+  const [selectedEscrowProduct, setSelectedEscrowProduct] = useState<any | null>(null);
 
   useEffect(() => {
     async function loadProducts() {
@@ -338,6 +345,9 @@ export default function HomePage() {
                 <span>Escrow Wallet &amp; Payouts</span>
               </Link>
             </div>
+
+            {/* Live Agro Weather Widget for District */}
+            <WeatherWidget />
           </div>
         )}
 
@@ -462,13 +472,33 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="p-4 pt-0">
-                  <Link
-                    href={`/products/${p.id}`}
-                    className="w-full text-center bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-800 dark:text-slate-200 font-bold py-2 rounded-xl text-xs transition block"
-                  >
-                    View Harvest Details &amp; Bid
-                  </Link>
+                <div className="p-4 pt-0 space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link
+                      href={`/products/${p.id}`}
+                      className="text-center bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 font-bold py-2 rounded-xl text-xs transition block"
+                    >
+                      View &amp; Bid
+                    </Link>
+
+                    <button
+                      onClick={() => setSelectedEscrowProduct(p)}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1 shadow-xs"
+                    >
+                      <QrCode className="w-3.5 h-3.5" />
+                      <span>{t.payWithUPI}</span>
+                    </button>
+                  </div>
+
+                  <WhatsAppShare
+                    cropName={p.cropName}
+                    variety={p.variety}
+                    pricePerKg={p.pricePerKg}
+                    farmerName={p.farmer?.user?.name || 'Maharashtra Farmer'}
+                    location={p.farmLocation}
+                    productId={p.id}
+                    unit={p.unit}
+                  />
                 </div>
               </div>
             ))}
@@ -506,17 +536,15 @@ export default function HomePage() {
             <div className="lg:col-span-7 space-y-6 text-left">
               <div className="inline-flex items-center gap-2 bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold px-3 py-1 rounded-full">
                 <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400"></span>
-                <span>Direct Agricultural Marketplace &bull; Maharashtra</span>
+                <span>{t.heroBadge}</span>
               </div>
 
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]">
-                Fresh from the Farmgate.{' '}
-                <span className="text-emerald-600 dark:text-emerald-400">Fair Pay for Farmers.</span>{' '}
-                Zero Middlemen.
+                {t.heroHeadline}
               </h1>
 
               <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
-                KisanDirect directly connects Maharashtra cultivators with households, restaurants, and retail marts. Real APMC mandi benchmark pricing, verified harvest quality, and protected escrow payouts.
+                {t.heroSubheadline}
               </p>
 
               {/* Dual Primary Actions */}
@@ -526,7 +554,7 @@ export default function HomePage() {
                   className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-7 py-3.5 rounded-xl shadow-sm transition hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  <span>Browse Fresh Produce</span>
+                  <span>{t.browseProduce}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
 
@@ -535,7 +563,7 @@ export default function HomePage() {
                   className="w-full sm:w-auto bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold px-7 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 transition hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
                 >
                   <Sprout className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>Sell Harvest as Cultivator</span>
+                  <span>{t.sellHarvest}</span>
                 </Link>
               </div>
 
@@ -546,7 +574,7 @@ export default function HomePage() {
                     +42%
                   </span>
                   <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 block">
-                    Farmer Profit
+                    {t.farmerProfit}
                   </span>
                 </div>
                 <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
@@ -554,7 +582,7 @@ export default function HomePage() {
                     -26%
                   </span>
                   <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 block">
-                    Buyer Cost
+                    {t.buyerSavings}
                   </span>
                 </div>
                 <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
@@ -562,7 +590,7 @@ export default function HomePage() {
                     2 Hours
                   </span>
                   <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 block">
-                    Bank Escrow Payout
+                    {t.escrowPayout}
                   </span>
                 </div>
               </div>
@@ -824,13 +852,33 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="p-5 pt-0">
-                <Link
-                  href={`/products/${p.id}`}
-                  className="w-full text-center bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-800 dark:text-slate-200 font-bold py-2.5 rounded-xl text-xs transition block"
-                >
-                  View Details &amp; Place Bid
-                </Link>
+              <div className="p-5 pt-0 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <Link
+                    href={`/products/${p.id}`}
+                    className="text-center bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 font-bold py-2.5 rounded-xl text-xs transition block"
+                  >
+                    View Details
+                  </Link>
+
+                  <button
+                    onClick={() => setSelectedEscrowProduct(p)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1 shadow-xs"
+                  >
+                    <QrCode className="w-3.5 h-3.5" />
+                    <span>{t.payWithUPI}</span>
+                  </button>
+                </div>
+
+                <WhatsAppShare
+                  cropName={p.cropName}
+                  variety={p.variety}
+                  pricePerKg={p.pricePerKg}
+                  farmerName={p.farmer?.user?.name || 'Maharashtra Farmer'}
+                  location={p.farmLocation}
+                  productId={p.id}
+                  unit={p.unit}
+                />
               </div>
             </div>
           ))}
@@ -917,6 +965,17 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      {/* Instant UPI Escrow QR Modal */}
+      {selectedEscrowProduct && (
+        <UpiQrModal
+          isOpen={!!selectedEscrowProduct}
+          onClose={() => setSelectedEscrowProduct(null)}
+          amount={selectedEscrowProduct.pricePerKg * (selectedEscrowProduct.minOrderQty || 20)}
+          productName={`${selectedEscrowProduct.cropName} (${selectedEscrowProduct.minOrderQty || 20} ${selectedEscrowProduct.unit || 'kg'} crate)`}
+          farmerName={selectedEscrowProduct.farmer?.user?.name || 'Maharashtra Farmer'}
+        />
+      )}
     </div>
   );
 }

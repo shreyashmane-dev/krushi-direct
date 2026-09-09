@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/context';
 import { DEMO_ACCOUNTS, getRoleDashboardUrl } from '@/lib/auth/demo-users';
+import LanguageSwitcher from '@/components/language-switcher';
+import { useLanguage } from '@/lib/i18n';
 import {
   Sparkles,
   ArrowRight,
@@ -143,8 +145,12 @@ export default function DemoPersonaBanner() {
               ))}
             </div>
 
-            {/* Right: Dashboard Action + Logout */}
+            {/* Right: Dashboard Action + Language + Logout */}
             <div className="flex items-center gap-2 shrink-0 ml-auto">
+              <div className="hidden sm:block">
+                <LanguageSwitcher compact />
+              </div>
+
               <Link
                 href={dashboardUrl}
                 className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm"

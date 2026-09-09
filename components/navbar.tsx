@@ -6,6 +6,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/context';
 import { DEMO_ACCOUNTS, getRoleDashboardUrl } from '@/lib/auth/demo-users';
 import ThemeToggle from '@/components/theme-toggle';
+import LanguageSwitcher from '@/components/language-switcher';
+import { useLanguage } from '@/lib/i18n';
 import {
   Home,
   ShoppingBag,
@@ -28,6 +30,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, switchUser, logout } = useAuth();
+  const { t } = useLanguage();
   const [unreadCount, setUnreadCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showDemoMenu, setShowDemoMenu] = useState(false);
@@ -56,13 +59,13 @@ export default function Navbar() {
   const dashboardUrl = getRoleDashboardUrl(user?.role);
 
   const navLinks = [
-    { href: '/', label: 'Home', icon: Home, exact: true },
-    { href: '/marketplace', label: 'Marketplace', icon: ShoppingBag },
-    { href: '/farmer/produce/new', label: 'Sell Produce', icon: Sprout },
-    { href: user?.role === 'FARMER' ? '/farmer/orders' : '/buyer/orders', label: 'Orders', icon: Package },
-    { href: '/farmer/insights', label: 'Price Trends', icon: TrendingUp },
-    { href: '/innovation', label: 'How It Works', icon: HelpCircle },
-    { href: dashboardUrl, label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/', label: t.home, icon: Home, exact: true },
+    { href: '/marketplace', label: t.marketplace, icon: ShoppingBag },
+    { href: '/farmer/produce/new', label: t.sellProduce, icon: Sprout },
+    { href: user?.role === 'FARMER' ? '/farmer/orders' : '/buyer/orders', label: t.orders, icon: Package },
+    { href: '/farmer/insights', label: t.priceTrends, icon: TrendingUp },
+    { href: '/innovation', label: t.howItWorks, icon: HelpCircle },
+    { href: dashboardUrl, label: t.dashboard, icon: LayoutDashboard },
   ];
 
   const sidebarContent = (
@@ -211,9 +214,15 @@ export default function Navbar() {
 
       {/* Bottom Controls: Theme Toggle & Quick Action */}
       <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+        {/* Language Switcher */}
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Language</span>
+          <LanguageSwitcher compact />
+        </div>
+
         {/* Theme Toggle Button */}
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Theme</span>
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t.theme}</span>
           <ThemeToggle />
         </div>
 
@@ -244,16 +253,17 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {user && (
-            <span className="text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-700 px-2 py-0.5 rounded font-mono">
+            <span className="text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-700 px-1.5 py-0.5 rounded font-mono">
               <strong>{user.role}</strong>
             </span>
           )}
+          <LanguageSwitcher compact />
           <ThemeToggle />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 transition"
+            className="p-1.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900 transition"
             aria-label="Toggle Navigation Menu"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

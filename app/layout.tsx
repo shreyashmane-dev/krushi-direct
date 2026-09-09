@@ -48,6 +48,8 @@ export const metadata: Metadata = {
 };
 
 import { ThemeProvider } from '@/lib/theme-context';
+import { LanguageProvider } from '@/lib/i18n';
+import MobileBottomNav from '@/components/mobile-bottom-nav';
 
 export default function RootLayout({
   children,
@@ -60,19 +62,22 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className="min-h-screen bg-[#fafcf8] dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-emerald-500 selection:text-white transition-colors duration-150">
-        <ThemeProvider>
-          <AuthProvider>
-            <Navbar />
-            <div className="md:pl-64 flex flex-col min-h-screen">
-              <DemoPersonaBanner />
-              <MandiTicker />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
-            <AiChatModal />
-            <PwaInstaller />
-          </AuthProvider>
-        </ThemeProvider>
+        <LanguageProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <Navbar />
+              <div className="md:pl-64 flex flex-col min-h-screen pb-16 md:pb-0">
+                <DemoPersonaBanner />
+                <MandiTicker />
+                <main className="flex-1">{children}</main>
+                <Footer />
+              </div>
+              <MobileBottomNav />
+              <AiChatModal />
+              <PwaInstaller />
+            </AuthProvider>
+          </ThemeProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

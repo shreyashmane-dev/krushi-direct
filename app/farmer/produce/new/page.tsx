@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   Sparkles,
   Upload,
+  Camera,
   CheckCircle2,
   Calendar,
   MapPin,
@@ -44,6 +45,19 @@ export default function NewProducePage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const handleCameraUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          setImageUrl(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -301,15 +315,65 @@ export default function NewProducePage() {
             )}
           </div>
 
-          {/* Image URL / Upload Simulation */}
-          <div>
-            <label className="font-bold text-slate-700 block mb-1">Crop Image URL</label>
-            <input
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-mono"
-            />
+          {/* Crop Photograph: Phone Camera / Gallery / URL */}
+          <div className="space-y-3 bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <label className="font-bold text-slate-800 dark:text-slate-200 block">
+              Crop Photograph (Phone Camera or Gallery)
+            </label>
+
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              {imageUrl && (
+                <div className="relative w-28 h-28 rounded-2xl overflow-hidden border-2 border-emerald-500 shadow-sm shrink-0 bg-slate-100 dark:bg-slate-900">
+                  <img src={imageUrl} alt="Crop Preview" className="w-full h-full object-cover" />
+                  <span className="absolute bottom-1 left-1 right-1 bg-black/75 text-white text-[9px] font-bold text-center py-0.5 rounded">
+                    Preview
+                  </span>
+                </div>
+              )}
+
+              <div className="space-y-2 flex-1 w-full">
+                <div className="flex flex-wrap items-center gap-2">
+                  <label
+                    htmlFor="camera-capture"
+                    className="cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm"
+                  >
+                    <Camera className="w-4 h-4" />
+                    <span>Snap with Phone Camera</span>
+                  </label>
+                  <input
+                    type="file"
+                    id="camera-capture"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleCameraUpload}
+                    className="hidden"
+                  />
+
+                  <label
+                    htmlFor="file-gallery"
+                    className="cursor-pointer bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 transition flex items-center gap-2"
+                  >
+                    <Upload className="w-4 h-4 text-emerald-600" />
+                    <span>Upload from Device</span>
+                  </label>
+                  <input
+                    type="file"
+                    id="file-gallery"
+                    accept="image/*"
+                    onChange={handleCameraUpload}
+                    className="hidden"
+                  />
+                </div>
+
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="Or paste image URL (https://...)"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs font-mono"
+                />
+              </div>
+            </div>
           </div>
 
           <div>
