@@ -28,16 +28,20 @@ import { useLanguage } from '@/lib/i18n';
 import { getGeminiAuthHeaders } from '@/lib/ai/gemini-key-storage';
 import GeminiKeyModal from '@/components/gemini-key-modal';
 
+import Link from 'next/link';
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
   provider?: string;
+  isStreaming?: boolean;
 }
 
 function formatInlineMarkdown(text: string): React.ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*|₹\d+(?:\.\d+)?(?:\/(?:kg|quintal|crate|tonne))?)/g);
+  // Regex captures bold **text**, code `text`, and prices ₹XX
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`|₹\d+(?:\.\d+)?(?:\/(?:kg|quintal|crate|tonne))?)/g);
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return (
@@ -46,9 +50,16 @@ function formatInlineMarkdown(text: string): React.ReactNode {
         </strong>
       );
     }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return (
+        <code key={i} className="font-mono text-[11px] bg-slate-100 dark:bg-slate-800 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
     if (part.startsWith('₹')) {
       return (
-        <span key={i} className="font-black text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/70 px-1.5 py-0.5 rounded font-mono text-[11px] inline-block border border-emerald-200 dark:border-emerald-800/60">
+        <span key={i} className="font-black text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/70 px-1.5 py-0.5 rounded font-mono text-[11px] inline-block border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
           {part}
         </span>
       );
@@ -59,62 +70,181 @@ function formatInlineMarkdown(text: string): React.ReactNode {
 
 function renderAiMarkdown(content: string) {
   const lines = content.split('\n');
+  const elements: React.ReactNode[] = [];
+
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      elements.push(<div key={`empty-${i}`} className="h-1" />);
+      i++;
+      continue;
+    }
+
+    // Code block ```
+    if (trimmed.startsWith('```')) {
+      const codeLines: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i].trim().startsWith('```')) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      i++; // skip closing ```
+      elements.push(
+        <pre key={`code-${i}`} className="p-3 bg-slate-950 text-emerald-300 font-mono text-[11px] rounded-xl overflow-x-auto border border-emerald-500/20 shadow-inner my-2">
+          <code>{codeLines.join('\n')}</code>
+        </pre>
+      );
+      continue;
+    }
+
+    // Markdown Table detection (starts with | and next row is separator |---|)
+    if (trimmed.startsWith('|') && trimmed.endsWith('|') && i + 1 < lines.length && lines[i + 1].trim().startsWith('|') && lines[i + 1].includes('---')) {
+      const headerRow = trimmed.split('|').map(c => c.trim()).filter(Boolean);
+      i += 2; // skip header and separator
+      const rows: string[][] = [];
+      while (i < lines.length && lines[i].trim().startsWith('|')) {
+        const row = lines[i].trim().split('|').map(c => c.trim()).filter(Boolean);
+        if (row.length > 0) rows.push(row);
+        i++;
+      }
+      elements.push(
+        <div key={`table-${i}`} className="my-2.5 overflow-x-auto rounded-xl border border-slate-200 dark:border-stone-700 shadow-2xs">
+          <table className="w-full text-left text-[11px]">
+            <thead className="bg-emerald-50 dark:bg-stone-800 text-emerald-900 dark:text-emerald-300 font-bold border-b border-slate-200 dark:border-stone-700">
+              <tr>
+                {headerRow.map((cell, cIdx) => (
+                  <th key={cIdx} className="px-2.5 py-1.5">{cell}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-stone-800 bg-white dark:bg-stone-900">
+              {rows.map((row, rIdx) => (
+                <tr key={rIdx} className="hover:bg-slate-50/60 dark:hover:bg-stone-800/50">
+                  {row.map((cell, cIdx) => (
+                    <td key={cIdx} className="px-2.5 py-1.5">{formatInlineMarkdown(cell)}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+      continue;
+    }
+
+    // Header ###, ##, #
+    if (trimmed.startsWith('### ') || trimmed.startsWith('## ') || trimmed.startsWith('# ')) {
+      const text = trimmed.replace(/^#+\s*/, '');
+      elements.push(
+        <h5 key={`h-${i}`} className="font-black text-xs text-emerald-800 dark:text-emerald-300 mt-2.5 mb-1 flex items-center gap-1.5">
+          <Sparkles className="w-3 h-3 text-emerald-500 shrink-0" />
+          <span>{formatInlineMarkdown(text)}</span>
+        </h5>
+      );
+      i++;
+      continue;
+    }
+
+    // Bullet point
+    if (trimmed.startsWith('• ') || trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      const text = trimmed.replace(/^[-•*]\s*/, '');
+      elements.push(
+        <div key={`bullet-${i}`} className="flex items-start gap-1.5 pl-1 text-slate-700 dark:text-stone-300">
+          <span className="text-emerald-600 font-bold shrink-0 mt-0.5">&bull;</span>
+          <span>{formatInlineMarkdown(text)}</span>
+        </div>
+      );
+      i++;
+      continue;
+    }
+
+    // Numbered list: 1. 2.
+    const numMatch = trimmed.match(/^(\d+)\.\s*(.+)/);
+    if (numMatch) {
+      elements.push(
+        <div key={`num-${i}`} className="flex items-start gap-2 pl-1 text-slate-700 dark:text-stone-300">
+          <span className="w-4 h-4 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-mono font-bold flex items-center justify-center shrink-0 mt-0.5">
+            {numMatch[1]}
+          </span>
+          <span>{formatInlineMarkdown(numMatch[2])}</span>
+        </div>
+      );
+      i++;
+      continue;
+    }
+
+    // Blockquote or Callout
+    if (trimmed.startsWith('> ')) {
+      elements.push(
+        <div key={`quote-${i}`} className="border-l-2 border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 p-2 rounded-r-lg text-[11px] font-medium text-emerald-900 dark:text-emerald-200 my-1">
+          {formatInlineMarkdown(trimmed.replace(/^>\s*/, ''))}
+        </div>
+      );
+      i++;
+      continue;
+    }
+
+    // Normal paragraph
+    elements.push(
+      <p key={`p-${i}`} className="text-slate-700 dark:text-stone-300">
+        {formatInlineMarkdown(trimmed)}
+      </p>
+    );
+    i++;
+  }
+
+  // Detect Smart Action Context Pills
+  const lower = content.toLowerCase();
+  const showMarketplace = lower.includes('tomato') || lower.includes('onion') || lower.includes('potato') || lower.includes('mango') || lower.includes('mandi');
+  const showLogistics = lower.includes('logistics') || lower.includes('truck') || lower.includes('freight') || lower.includes('transit');
+  const showDisease = lower.includes('blight') || lower.includes('disease') || lower.includes('fungus') || lower.includes('pest') || lower.includes('spray');
+  const showGrading = lower.includes('grade') || lower.includes('agmark') || lower.includes('quality') || lower.includes('sorting');
+
   return (
     <div className="space-y-1.5 leading-relaxed text-xs">
-      {lines.map((line, idx) => {
-        const trimmed = line.trim();
-        if (!trimmed) return <div key={idx} className="h-1" />;
+      {elements}
 
-        // Header ### or ##
-        if (trimmed.startsWith('### ') || trimmed.startsWith('## ') || trimmed.startsWith('# ')) {
-          const text = trimmed.replace(/^#+\s*/, '');
-          return (
-            <h5 key={idx} className="font-black text-xs text-emerald-800 dark:text-emerald-300 mt-2 mb-1 flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-emerald-500" />
-              <span>{formatInlineMarkdown(text)}</span>
-            </h5>
-          );
-        }
-
-        // Bullet point
-        if (trimmed.startsWith('• ') || trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-          const text = trimmed.replace(/^[-•*]\s*/, '');
-          return (
-            <div key={idx} className="flex items-start gap-1.5 pl-1 text-slate-700 dark:text-stone-300">
-              <span className="text-emerald-600 font-bold shrink-0 mt-0.5">&bull;</span>
-              <span>{formatInlineMarkdown(text)}</span>
-            </div>
-          );
-        }
-
-        // Numbered list: 1. 2.
-        const numMatch = trimmed.match(/^(\d+)\.\s*(.+)/);
-        if (numMatch) {
-          return (
-            <div key={idx} className="flex items-start gap-2 pl-1 text-slate-700 dark:text-stone-300">
-              <span className="w-4 h-4 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-mono font-bold flex items-center justify-center shrink-0 mt-0.5">
-                {numMatch[1]}
-              </span>
-              <span>{formatInlineMarkdown(numMatch[2])}</span>
-            </div>
-          );
-        }
-
-        // Callout or quote
-        if (trimmed.startsWith('> ')) {
-          return (
-            <div key={idx} className="border-l-2 border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 p-2 rounded-r-lg text-[11px] font-medium text-emerald-900 dark:text-emerald-200 my-1">
-              {formatInlineMarkdown(trimmed.replace(/^>\s*/, ''))}
-            </div>
-          );
-        }
-
-        return (
-          <p key={idx} className="text-slate-700 dark:text-stone-300">
-            {formatInlineMarkdown(trimmed)}
-          </p>
-        );
-      })}
+      {/* Smart In-Chat Deep Links */}
+      {(showMarketplace || showLogistics || showDisease || showGrading) && (
+        <div className="pt-2 mt-2 border-t border-slate-100 dark:border-stone-700/60 flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] font-bold text-slate-400 font-mono uppercase">Quick Action:</span>
+          {showMarketplace && (
+            <Link
+              href="/marketplace"
+              className="text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-300 dark:border-emerald-800 transition inline-flex items-center gap-1"
+            >
+              <span>🛒 Browse Marketplace</span>
+            </Link>
+          )}
+          {showLogistics && (
+            <Link
+              href="/logistics"
+              className="text-[10px] font-bold bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 hover:bg-teal-100 px-2 py-0.5 rounded-md border border-teal-300 dark:border-teal-800 transition inline-flex items-center gap-1"
+            >
+              <span>🚛 Route Optimizer</span>
+            </Link>
+          )}
+          {showDisease && (
+            <Link
+              href="/crop-lens"
+              className="text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-300 dark:border-emerald-800 transition inline-flex items-center gap-1"
+            >
+              <span>🌿 Scan Leaf Doctor</span>
+            </Link>
+          )}
+          {showGrading && (
+            <Link
+              href="/crop-grading"
+              className="text-[10px] font-bold bg-amber-50 dark:bg-amber-950 text-amber-800 dark:text-amber-300 hover:bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 dark:border-amber-800 transition inline-flex items-center gap-1"
+            >
+              <span>⚖️ Grade Produce</span>
+            </Link>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -394,14 +524,49 @@ export default function AiChatModal() {
 
       if (res.ok) {
         const data = await res.json();
+        const fullReply = data.reply || 'I am here to assist with your agricultural inquiry.';
+        const assistantMsgId = `assistant-${Date.now()}`;
+        
+        // Setup initial streaming message
         const assistantMessage: Message = {
-          id: `assistant-${Date.now()}`,
+          id: assistantMsgId,
           role: 'assistant',
-          content: data.reply || 'I am here to assist with your agricultural inquiry.',
+          content: '',
           timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
           provider: data.provider,
+          isStreaming: true,
         };
+
         setMessages((prev) => [...prev, assistantMessage]);
+        setLoading(false);
+
+        // Fast simulated token/word stream for high-tech AI feel
+        const words = fullReply.split(' ');
+        let currentIndex = 0;
+        const streamChunkSize = Math.max(1, Math.floor(words.length / 30));
+        
+        const streamInterval = setInterval(() => {
+          currentIndex += streamChunkSize;
+          if (currentIndex >= words.length) {
+            clearInterval(streamInterval);
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMsgId
+                  ? { ...msg, content: fullReply, isStreaming: false }
+                  : msg
+              )
+            );
+          } else {
+            const currentContent = words.slice(0, currentIndex).join(' ');
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMsgId
+                  ? { ...msg, content: currentContent }
+                  : msg
+              )
+            );
+          }
+        }, 25);
       } else {
         throw new Error('API response failed');
       }
@@ -414,7 +579,6 @@ export default function AiChatModal() {
         timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, errorMessage]);
-    } finally {
       setLoading(false);
     }
   };
@@ -584,13 +748,18 @@ export default function AiChatModal() {
                       }`}
                     >
                       {isAssistant ? (
-                        renderAiMarkdown(m.content)
+                        <div>
+                          {renderAiMarkdown(m.content)}
+                          {m.isStreaming && (
+                            <span className="inline-block w-2 h-3.5 bg-emerald-500 animate-pulse ml-1 align-middle font-mono font-bold">▋</span>
+                          )}
+                        </div>
                       ) : (
                         <div className="whitespace-pre-wrap">{m.content}</div>
                       )}
 
                       {/* Message Actions */}
-                      {isAssistant && (
+                      {isAssistant && !m.isStreaming && (
                         <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-stone-700 flex items-center justify-between text-[10px] text-slate-400">
                           <span className="truncate max-w-[120px] font-mono text-[9px]">{m.provider || 'KrushiMitra AI'}</span>
                           <div className="flex items-center gap-2">
@@ -693,7 +862,7 @@ export default function AiChatModal() {
             ))}
           </div>
 
-          {/* Input Box with Voice Mic */}
+          {/* Input Box with Voice Mic & Equalizer Wave */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -714,6 +883,15 @@ export default function AiChatModal() {
             >
               {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             </button>
+
+            {isListening && (
+              <div className="flex items-center gap-0.5 px-1">
+                <span className="w-1 h-3 bg-red-500 rounded-full animate-bounce [animation-delay:0.1s]" />
+                <span className="w-1 h-5 bg-red-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                <span className="w-1 h-2 bg-red-500 rounded-full animate-bounce [animation-delay:0.3s]" />
+                <span className="w-1 h-4 bg-red-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+              </div>
+            )}
 
             <input
               type="text"

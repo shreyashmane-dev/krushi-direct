@@ -40,6 +40,8 @@ import { ProfitCalculator } from '@/components/profit-calculator';
 import CropDiseaseScanner from '@/components/crop-disease-scanner';
 import SmartRoutePlanner from '@/components/logistics/smart-route-planner';
 import AIQualityScanner from '@/components/ai-quality-scanner';
+import MiddlemanSimulator from '@/components/middleman-simulator';
+import LogisticsCorridorRadar from '@/components/logistics-corridor-radar';
 
 const INITIAL_FEATURED_PRODUCTS = [
   {
@@ -504,6 +506,53 @@ export default function HomePage() {
       </section>
 
       {/* ======================================================== */}
+      {/* 1A. INSTITUTIONAL ACCREDITATION & TRUST RIBBON           */}
+      {/* ======================================================== */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm grid grid-cols-2 md:grid-cols-4 gap-4 items-center text-left">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-xs font-black text-slate-900 dark:text-white block">Smart India Hackathon</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Grand Finale Finalist 2026</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 flex items-center justify-center shrink-0">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-xs font-black text-slate-900 dark:text-white block">e-NAM Interoperable</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Direct APMC Mandi Sync</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+              <IndianRupee className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-xs font-black text-slate-900 dark:text-white block">RBI Escrow Guard</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Same-Day Payout SLA &lt;2h</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-teal-100 dark:bg-teal-950/70 text-teal-700 dark:text-teal-300 flex items-center justify-center shrink-0">
+              <Truck className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-xs font-black text-slate-900 dark:text-white block">Cold-Chain Reefer</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 block">ISO 22000 &bull; 4°C Monitored</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ======================================================== */}
       {/* 1B. LIVE AGRO WEATHER & ADVISORY WIDGET (OPEN-METEO)      */}
       {/* ======================================================== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -643,6 +692,13 @@ export default function HomePage() {
             </table>
           </div>
         </div>
+      </section>
+
+      {/* ======================================================== */}
+      {/* 3A. INTERACTIVE MIDDLEMAN PROFIT ELIMINATOR CALCULATOR  */}
+      {/* ======================================================== */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <MiddlemanSimulator />
       </section>
 
       {/* ======================================================== */}
@@ -805,6 +861,13 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ======================================================== */}
+      {/* 3E. LIVE LOGISTICS CORRIDOR RADAR & TRUCK POOLS          */}
+      {/* ======================================================== */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <LogisticsCorridorRadar />
       </section>
 
       {/* ======================================================== */}
