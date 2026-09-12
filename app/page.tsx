@@ -620,7 +620,7 @@ export default function HomePage() {
       {/* ======================================================== */}
       {/* 3A. INTERACTIVE MIDDLEMAN PROFIT ELIMINATOR CALCULATOR  */}
       {/* ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="roi-simulator" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-20">
         <MiddlemanSimulator />
       </section>
 

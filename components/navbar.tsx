@@ -87,6 +87,12 @@ export default function Navbar() {
           icon: Leaf,
         },
         {
+          href: '/roi-simulator',
+          label: language === 'mr' ? 'आरओआय सिम्युलेटर' : language === 'hi' ? 'आरओआई सिम्युलेटर' : 'Middleman ROI Simulator',
+          icon: TrendingUp,
+          badge: 'ROI',
+        },
+        {
           href: '/profit-calculator',
           label: language === 'mr' ? 'नफा कॅल्क्युलेटर' : language === 'hi' ? 'मुनाफा कैलकुलेटर' : 'Profit & MSP Calc',
           icon: Calculator,
