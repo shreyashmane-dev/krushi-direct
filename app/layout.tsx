@@ -47,6 +47,7 @@ export const metadata: Metadata = {
   },
 };
 
+import TopNavbar from '@/components/top-navbar';
 import { ThemeProvider } from '@/lib/theme-context';
 import { LanguageProvider } from '@/lib/i18n';
 import MobileBottomNav from '@/components/mobile-bottom-nav';
@@ -67,6 +68,7 @@ export default function RootLayout({
             <AuthProvider>
               <Navbar />
               <div className="md:pl-64 flex flex-col min-h-screen pb-16 md:pb-0">
+                <TopNavbar />
                 <DemoPersonaBanner />
                 <MandiTicker />
                 <main className="flex-1">{children}</main>

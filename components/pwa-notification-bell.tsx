@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   Bell,
@@ -14,6 +14,10 @@ import {
   Sparkles,
   ExternalLink,
   ShieldCheck,
+  Check,
+  Trash2,
+  Radio,
+  Clock,
 } from 'lucide-react';
 import {
   requestNotificationPermission,
@@ -22,25 +26,53 @@ import {
   NotificationPayload,
 } from '@/lib/pwa-notifications';
 
+// Web Audio API chime - zero network requests, zero mp3 file dependencies
+function playSyntheticChime() {
+  try {
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99]; // C5, E5, G5 cheerful chime
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + i * 0.09);
+      gain.gain.setValueAtTime(0.1, now + i * 0.09);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.09 + 0.3);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + i * 0.09);
+      osc.stop(now + i * 0.09 + 0.3);
+    });
+  } catch {
+    // AudioContext may require user interaction first; ignore if blocked
+  }
+}
+
 export default function PwaNotificationBell() {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(2);
   const [activeToast, setActiveToast] = useState<NotificationPayload | null>(null);
   const [demoIndex, setDemoIndex] = useState(0);
+  const [notificationsList, setNotificationsList] = useState<NotificationPayload[]>(DEMO_NOTIFICATIONS);
+  const [activeTab, setActiveTab] = useState<'all' | 'mandi' | 'orders'>('all');
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setPermission(Notification.permission);
     }
 
-    // Listen for custom in-app notifications
     const handleInAppNotif = (e: Event) => {
       const customEvent = e as CustomEvent<NotificationPayload>;
       setActiveToast(customEvent.detail);
       setUnreadCount((prev) => prev + 1);
+      setNotificationsList((prev) => [customEvent.detail, ...prev]);
+      playSyntheticChime();
 
-      // Auto-hide toast after 6 seconds
       setTimeout(() => {
         setActiveToast((current) => (current === customEvent.detail ? null : current));
       }, 6000);
@@ -56,6 +88,7 @@ export default function PwaNotificationBell() {
     const res = await requestNotificationPermission();
     setPermission(res);
     if (res === 'granted') {
+      playSyntheticChime();
       sendPwaNotification({
         title: '🔔 KisanDirect Alerts Enabled',
         body: 'You will now receive real-time APMC mandi surges, outbid alerts, and escrow payouts!',
@@ -65,102 +98,214 @@ export default function PwaNotificationBell() {
   };
 
   const handleTriggerDemoNotification = () => {
+    playSyntheticChime();
     const notif = DEMO_NOTIFICATIONS[demoIndex % DEMO_NOTIFICATIONS.length];
     setDemoIndex((prev) => prev + 1);
     sendPwaNotification(notif);
   };
 
+  const handleClearAll = () => {
+    setNotificationsList([]);
+    setUnreadCount(0);
+  };
+
+  const filteredNotifications = notificationsList.filter((n) => {
+    if (activeTab === 'mandi') return n.title.toLowerCase().includes('mandi') || n.title.toLowerCase().includes('price') || n.title.toLowerCase().includes('surge');
+    if (activeTab === 'orders') return n.title.toLowerCase().includes('order') || n.title.toLowerCase().includes('escrow') || n.title.toLowerCase().includes('reefer') || n.title.toLowerCase().includes('outbid');
+    return true;
+  });
+
   return (
     <>
-      {/* Navbar Notification Bell Trigger */}
-      <div className="relative">
+      {/* Bell Trigger Button */}
+      <div className="relative inline-block" ref={panelRef}>
         <button
+          type="button"
           onClick={() => {
             setIsOpen(!isOpen);
             if (!isOpen) setUnreadCount(0);
           }}
-          title="Notifications & PWA Alerts"
-          className="relative p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center justify-center"
+          aria-expanded={isOpen}
+          aria-label="Open notifications"
+          title="Notifications & Live Alerts"
+          className={`relative p-2 rounded-xl transition-all duration-150 flex items-center justify-center ${
+            isOpen
+              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 ring-2 ring-emerald-500/40'
+              : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+          }`}
         >
           <Bell className="w-4 h-4" />
           {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex items-center justify-center rounded-full h-4 w-4 bg-amber-500 text-[9px] font-black text-white ring-2 ring-white dark:ring-slate-900 font-mono">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
             </span>
           )}
         </button>
 
-        {/* Dropdown Menu */}
+        {/* Global Click-Away Backdrop */}
         {isOpen && (
-          <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl z-50 overflow-hidden text-left animate-in fade-in-50 zoom-in-95 duration-150">
-            {/* Header */}
-            <div className="bg-slate-950 text-white p-4 flex items-center justify-between border-b border-slate-800">
-              <div className="flex items-center gap-2">
-                <Bell className="w-4 h-4 text-emerald-400" />
-                <span className="font-black text-xs">PWA Push &amp; Mandi Alerts</span>
+          <div
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px] transition-opacity"
+            onClick={() => setIsOpen(false)}
+          />
+        )}
+
+        {/* Dropdown Container - Perfectly Aligned and Never Clipped */}
+        {isOpen && (
+          <div
+            className="fixed sm:absolute top-16 sm:top-full right-2 sm:right-0 mt-2 w-[calc(100vw-1rem)] sm:w-[420px] max-w-[420px] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-2xl z-50 overflow-hidden text-left animate-in fade-in-50 zoom-in-95 duration-150 ring-1 ring-black/5"
+          >
+            {/* Header with Emerald Gradient */}
+            <div className="bg-gradient-to-r from-emerald-900 via-slate-900 to-slate-950 text-white px-4 py-3.5 flex items-center justify-between border-b border-emerald-800/40">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-400 flex items-center justify-center shrink-0">
+                  <Bell className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-black text-xs text-white">Live Push & Mandi Intel</span>
+                    <span className="flex h-1.5 w-1.5 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-mono block -mt-0.5">
+                    {permission === 'granted' ? 'W3C Push Connected' : 'In-App Live Stream'}
+                  </span>
+                </div>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold uppercase">
-                {permission === 'granted' ? 'Enabled' : 'Push Ready'}
-              </span>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleTriggerDemoNotification}
+                  title="Simulate Push Alert"
+                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] px-2.5 py-1 rounded-lg transition flex items-center gap-1 shadow-sm active:scale-95"
+                >
+                  <Sparkles className="w-3 h-3 text-slate-950" />
+                  <span className="hidden sm:inline">Simulate</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition"
+                  aria-label="Close notification panel"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            {/* Permission Prompt if not granted */}
+            {/* Permission Banner if not enabled */}
             {permission !== 'granted' && (
-              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border-b border-emerald-200 dark:border-emerald-800/60 flex items-center justify-between gap-2 text-xs">
-                <div className="text-[11px] text-emerald-900 dark:text-emerald-200 font-medium">
-                  Enable device push notifications for live APMC price alerts.
+              <div className="px-4 py-2.5 bg-emerald-50 dark:bg-emerald-950/40 border-b border-emerald-200/80 dark:border-emerald-800/60 flex items-center justify-between gap-3 text-xs">
+                <div className="text-[11px] text-emerald-900 dark:text-emerald-200 font-medium leading-tight">
+                  Enable OS push notifications for APMC mandi spikes & outbid alerts.
                 </div>
                 <button
+                  type="button"
                   onClick={handleEnableNotifications}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] px-2.5 py-1.5 rounded-lg shrink-0 transition"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] px-3 py-1.5 rounded-lg shrink-0 transition shadow-xs"
                 >
                   Enable
                 </button>
               </div>
             )}
 
-            {/* Demo Trigger Button (Crucial for Demo God standard) */}
-            <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-                Test Live PWA Alert &amp; Chime:
-              </span>
+            {/* Tab Filter Pills */}
+            <div className="flex items-center gap-1 px-3 py-2 bg-slate-50 dark:bg-slate-950/60 border-b border-slate-200/80 dark:border-slate-800 text-[11px] font-bold">
               <button
-                onClick={handleTriggerDemoNotification}
-                className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] px-2.5 py-1 rounded-lg transition flex items-center gap-1 shadow-sm"
+                type="button"
+                onClick={() => setActiveTab('all')}
+                className={`px-2.5 py-1 rounded-lg transition ${
+                  activeTab === 'all'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                }`}
               >
-                <Sparkles className="w-3 h-3" />
-                <span>Trigger Live Alert</span>
+                All ({notificationsList.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('mandi')}
+                className={`px-2.5 py-1 rounded-lg transition ${
+                  activeTab === 'mandi'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                }`}
+              >
+                Mandi Spikes
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('orders')}
+                className={`px-2.5 py-1 rounded-lg transition ${
+                  activeTab === 'orders'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                }`}
+              >
+                Orders & Reefer
               </button>
             </div>
 
-            {/* Notification Items */}
-            <div className="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
-              {DEMO_NOTIFICATIONS.map((n, idx) => (
-                <Link
-                  key={idx}
-                  href={n.url || '#'}
-                  onClick={() => setIsOpen(false)}
-                  className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition block space-y-1"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-slate-900 dark:text-white line-clamp-1">
-                      {n.title}
-                    </span>
-                    <span className="text-[9px] text-slate-400 font-mono">Just now</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                    {n.body}
+            {/* Notification Items List */}
+            <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/70">
+              {filteredNotifications.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-400 space-y-2">
+                  <CheckCircle2 className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
+                  <p className="font-bold text-slate-600 dark:text-slate-400">All clear! No notifications here.</p>
+                  <p className="text-[11px] text-slate-400">
+                    Click &quot;Simulate&quot; above to test a live push alert.
                   </p>
-                </Link>
-              ))}
+                </div>
+              ) : (
+                filteredNotifications.map((n, idx) => (
+                  <Link
+                    key={idx}
+                    href={n.url || '#'}
+                    onClick={() => setIsOpen(false)}
+                    className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition block space-y-1 group"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                        <span className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition leading-snug">
+                          {n.title}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-mono shrink-0 flex items-center gap-0.5">
+                        <Clock className="w-2.5 h-2.5" />
+                        <span>Just now</span>
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed pl-4">
+                      {n.body}
+                    </p>
+                  </Link>
+                ))
+              )}
             </div>
 
-            {/* Footer */}
-            <div className="p-2.5 bg-slate-50 dark:bg-slate-950 text-center border-t border-slate-200 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400 font-mono">
-                Standard Web Push &bull; W3C &amp; RBI SLA Verified
+            {/* Footer Bar */}
+            <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-950 flex items-center justify-between border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+              <span className="flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                <span>Zero Latency APMC Stream</span>
               </span>
+              {notificationsList.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearAll}
+                  className="hover:text-rose-600 dark:hover:text-rose-400 font-bold flex items-center gap-1 transition"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  <span>Clear All</span>
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -168,9 +313,9 @@ export default function PwaNotificationBell() {
 
       {/* Floating In-App Toast Banner */}
       {activeToast && (
-        <div className="fixed top-16 right-4 z-50 max-w-sm w-full bg-slate-950 text-white p-4 rounded-2xl border border-emerald-500/50 shadow-2xl flex items-start gap-3 animate-in slide-in-from-top-5 duration-200">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-            <Sparkles className="w-4 h-4" />
+        <div className="fixed top-16 sm:top-20 right-3 sm:right-6 z-[100] max-w-sm w-[calc(100vw-1.5rem)] sm:w-full bg-slate-950/95 backdrop-blur-md text-white p-4 rounded-2xl border border-emerald-500/60 shadow-2xl flex items-start gap-3 animate-in slide-in-from-top-4 duration-200">
+          <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+            <Sparkles className="w-4 h-4 text-emerald-300 animate-pulse" />
           </div>
           <div className="flex-1 space-y-1">
             <h5 className="font-black text-xs text-white leading-tight">
@@ -183,16 +328,17 @@ export default function PwaNotificationBell() {
               <Link
                 href={activeToast.url}
                 onClick={() => setActiveToast(null)}
-                className="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 pt-1"
+                className="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 pt-1 font-mono uppercase tracking-wider"
               >
-                <span>View Details</span>
-                <ExternalLink className="w-3 h-3" />
+                <span>View Details &rarr;</span>
               </Link>
             )}
           </div>
           <button
+            type="button"
             onClick={() => setActiveToast(null)}
-            className="text-slate-400 hover:text-white p-1"
+            className="text-slate-400 hover:text-white p-1 rounded-lg"
+            aria-label="Dismiss alert"
           >
             <X className="w-4 h-4" />
           </button>
