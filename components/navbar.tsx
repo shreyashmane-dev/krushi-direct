@@ -26,7 +26,11 @@ import {
   ShieldCheck,
   Calculator,
   Leaf,
+  Truck,
+  Sparkles,
+  Cpu,
 } from 'lucide-react';
+import GeminiKeyModal from '@/components/gemini-key-modal';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -36,6 +40,7 @@ export default function Navbar() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showDemoMenu, setShowDemoMenu] = useState(false);
+  const [keyModalOpen, setKeyModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchNotifications() {
@@ -64,14 +69,24 @@ export default function Navbar() {
     { href: '/', label: t.home, icon: Home, exact: true },
     { href: '/marketplace', label: t.marketplace, icon: ShoppingBag },
     { 
-      href: '/profit-calculator', 
-      label: language === 'mr' ? 'नफा कॅल्क्युलेटर' : language === 'hi' ? 'मुनाफा कैलकुलेटर' : 'Profit Calculator', 
-      icon: Calculator 
+      href: '/logistics', 
+      label: language === 'mr' ? 'स्मार्ट वाहतूक' : language === 'hi' ? 'स्मार्ट लॉजिस्टिक्स' : 'Logistics Pooling', 
+      icon: Truck 
+    },
+    { 
+      href: '/crop-grading', 
+      label: language === 'mr' ? 'पीक प्रतवारी' : language === 'hi' ? 'फसल ग्रेडिंग' : 'AI Crop Grading', 
+      icon: Sparkles 
     },
     { 
       href: '/crop-lens', 
       label: language === 'mr' ? 'पीक रोग लेन्स' : language === 'hi' ? 'फसल रोग लेंस' : 'Crop Disease Lens', 
       icon: Leaf 
+    },
+    { 
+      href: '/profit-calculator', 
+      label: language === 'mr' ? 'नफा कॅल्क्युलेटर' : language === 'hi' ? 'मुनाफा कैलकुलेटर' : 'Profit Calculator', 
+      icon: Calculator 
     },
     { href: '/farmer/produce/new', label: t.sellProduce, icon: Sprout },
     { href: user?.role === 'FARMER' ? '/farmer/orders' : '/buyer/orders', label: t.orders, icon: Package },
@@ -249,6 +264,24 @@ export default function Navbar() {
 
       {/* Bottom Controls: Theme Toggle & Quick Action */}
       <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+        {/* Gemini AI Key Trigger */}
+        <button
+          type="button"
+          onClick={() => {
+            setKeyModalOpen(true);
+            if (isMobile) setMobileOpen(false);
+          }}
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition"
+        >
+          <span className="flex items-center gap-1.5">
+            <Cpu className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Gemini AI Key</span>
+          </span>
+          <span className="text-[9px] bg-emerald-600 text-white px-1.5 py-0.5 rounded font-mono">
+            Setup
+          </span>
+        </button>
+
         {/* Language Switcher */}
         <div className="flex items-center justify-between px-1">
           <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Language</span>
@@ -270,6 +303,8 @@ export default function Navbar() {
 
   return (
     <>
+      <GeminiKeyModal isOpen={keyModalOpen} onClose={() => setKeyModalOpen(false)} />
+
       {/* 1. Desktop Vertical Navigation Sidebar */}
       <aside className="hidden md:flex fixed top-0 bottom-0 left-0 w-64 border-r border-slate-200 dark:border-slate-800 z-40 p-4 shadow-sm">
         {renderSidebar(false)}
@@ -294,6 +329,14 @@ export default function Navbar() {
               <strong>{user.role}</strong>
             </span>
           )}
+          <button
+            onClick={() => setKeyModalOpen(true)}
+            className="p-2 rounded-xl text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 transition"
+            aria-label="Gemini API Key"
+            title="Gemini AI Key"
+          >
+            <Cpu className="w-4 h-4" />
+          </button>
           <LanguageSwitcher compact />
           <ThemeToggle />
           <button

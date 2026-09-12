@@ -38,6 +38,8 @@ import UpiQrModal from '@/components/upi-qr-modal';
 import WhatsAppShare from '@/components/whatsapp-share';
 import { ProfitCalculator } from '@/components/profit-calculator';
 import CropDiseaseScanner from '@/components/crop-disease-scanner';
+import SmartRoutePlanner from '@/components/logistics/smart-route-planner';
+import AIQualityScanner from '@/components/ai-quality-scanner';
 
 const INITIAL_FEATURED_PRODUCTS = [
   {
@@ -136,6 +138,7 @@ export default function HomePage() {
   const [activeRole, setActiveRole] = useState<'FARMER' | 'CONSUMER' | 'RESTAURANT' | 'RETAILER'>('FARMER');
   const [isSwitchingPersona, setIsSwitchingPersona] = useState(false);
   const [selectedEscrowProduct, setSelectedEscrowProduct] = useState<any | null>(null);
+  const [homeToolTab, setHomeToolTab] = useState<'LOGISTICS' | 'DISEASE' | 'GRADING' | 'PROFIT'>('LOGISTICS');
 
   useEffect(() => {
     async function loadProducts() {
@@ -255,6 +258,35 @@ export default function HomePage() {
 
   return (
     <div className="space-y-16 pb-16">
+      {/* Real-time Agricultural Mandi & Logistics Ticker */}
+      <div className="bg-slate-950 text-slate-200 border-b border-emerald-500/30 py-2.5 overflow-hidden select-none -mt-4 shadow-inner">
+        <div className="flex items-center gap-8 animate-marquee whitespace-nowrap text-xs font-medium">
+          <span className="flex items-center gap-1.5 text-emerald-400 font-black tracking-wider uppercase font-mono pl-4">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            LIVE AGRO MANDI &amp; LOGISTICS TICKER:
+          </span>
+          <span className="flex items-center gap-1">🍅 Tomato (Pune Market Yard): <strong className="text-white font-bold">₹18.00/kg</strong> <span className="text-emerald-400 font-bold font-mono">+5.2%</span></span>
+          <span className="text-slate-600">&bull;</span>
+          <span className="flex items-center gap-1">🧅 Lasalgaon Red Onion: <strong className="text-white font-bold">₹24.00/kg</strong> <span className="text-rose-400 font-bold font-mono">-1.8%</span></span>
+          <span className="text-slate-600">&bull;</span>
+          <span className="flex items-center gap-1">🥭 Alphonso Mango (Ratnagiri): <strong className="text-white font-bold">₹140.00/kg</strong> <span className="text-emerald-400 font-bold font-mono">+8.4%</span></span>
+          <span className="text-slate-600">&bull;</span>
+          <span className="flex items-center gap-1">🥔 Satara Table Potato: <strong className="text-white font-bold">₹22.00/kg</strong> <span className="text-emerald-400 font-bold font-mono">+2.1%</span></span>
+          <span className="text-slate-600">&bull;</span>
+          <span className="flex items-center gap-1">🌶️ G4 Green Chilli (Sangli): <strong className="text-white font-bold">₹55.00/kg</strong> <span className="text-emerald-400 font-bold font-mono">+3.4%</span></span>
+          <span className="text-slate-600">&bull;</span>
+          <span className="flex items-center gap-1 text-teal-300">🚛 NH60 &amp; NH48 Cold-Chain Pool: <strong>6 Daily Dispatches Active</strong></span>
+          <span className="text-slate-600">&bull;</span>
+          <span className="flex items-center gap-1 text-emerald-300">⚡ Digital Escrow Payout SLA: <strong>&lt; 2 Hours Verified</strong></span>
+          <span className="text-slate-600">&bull;</span>
+          <span className="flex items-center gap-1">🍅 Tomato (Pune): <strong className="text-white font-bold">₹18.00/kg</strong> <span className="text-emerald-400 font-bold font-mono">+5.2%</span></span>
+          <span className="text-slate-600">&bull;</span>
+          <span className="flex items-center gap-1">🧅 Lasalgaon Red Onion: <strong className="text-white font-bold">₹24.00/kg</strong> <span className="text-rose-400 font-bold font-mono">-1.8%</span></span>
+          <span className="text-slate-600">&bull;</span>
+          <span className="flex items-center gap-1">🥭 Alphonso Mango: <strong className="text-white font-bold">₹140.00/kg</strong></span>
+        </div>
+      </div>
+
       {/* ======================================================== */}
       {/* 0. LOGGED-IN WORKSPACE BANNER (Shown when user is active) */}
       {/* ======================================================== */}
@@ -334,39 +366,68 @@ export default function HomePage() {
               </p>
 
               {/* Primary Actions */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
-                <Link
-                  href="/marketplace"
-                  className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3.5 rounded-xl shadow-sm transition hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>{t.browseProduce}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+              <div className="space-y-2.5 pt-2">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <Link
+                    href="/marketplace"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 rounded-xl shadow-sm transition hover:scale-[1.02] flex items-center justify-center gap-2 text-xs sm:text-sm"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    <span>{t.browseProduce}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
 
-                <Link
-                  href="/farmer/produce/new"
-                  className="w-full sm:w-auto bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold px-6 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 transition hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
-                >
-                  <Sprout className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>{t.sellHarvest}</span>
-                </Link>
+                  <Link
+                    href="/farmer/produce/new"
+                    className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold px-5 py-3 rounded-xl border border-slate-300 dark:border-slate-700 transition hover:scale-[1.02] flex items-center justify-center gap-2 text-xs sm:text-sm"
+                  >
+                    <Sprout className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <span>{t.sellHarvest}</span>
+                  </Link>
 
-                <Link
-                  href="/profit-calculator"
-                  className="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-stone-950 font-black px-5 py-3.5 rounded-xl shadow-md transition hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
-                >
-                  <TrendingUp className="w-4 h-4 text-stone-950" />
-                  <span>{language === 'mr' ? '💰 नफा कॅल्क्युलेटर' : language === 'hi' ? '💰 मुनाफा कैलकुलेटर' : '💰 Profit Calculator'}</span>
-                </Link>
+                  <Link
+                    href="/logistics"
+                    className="bg-teal-700 hover:bg-teal-600 text-white font-black px-4 py-3 rounded-xl shadow-sm transition hover:scale-[1.02] flex items-center justify-center gap-2 text-xs sm:text-sm border border-teal-500/40"
+                  >
+                    <Truck className="w-4 h-4 text-teal-300" />
+                    <span>Logistics Pooling</span>
+                    <span className="text-[9px] bg-teal-400 text-slate-950 font-black px-1.5 py-0.2 rounded font-mono uppercase">
+                      Save 60%
+                    </span>
+                  </Link>
+                </div>
 
-                <Link
-                  href="/crop-lens"
-                  className="w-full sm:w-auto bg-teal-600 hover:bg-teal-500 text-white font-black px-5 py-3.5 rounded-xl shadow-md transition hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
-                >
-                  <Leaf className="w-4 h-4 text-white" />
-                  <span>{language === 'mr' ? '🌿 पीक रोग लेन्स' : language === 'hi' ? '🌿 फसल रोग लेंस' : '🌿 Crop Disease Lens'}</span>
-                </Link>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <Link
+                    href="/crop-lens"
+                    className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 transition hover:scale-[1.02] flex items-center justify-center gap-2 text-xs"
+                  >
+                    <Leaf className="w-4 h-4 text-emerald-600" />
+                    <span>AI Crop Disease Lens</span>
+                    <span className="text-[9px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold px-1.5 py-0.2 rounded font-mono">
+                      Gemini 2.0
+                    </span>
+                  </Link>
+
+                  <Link
+                    href="/crop-grading"
+                    className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 transition hover:scale-[1.02] flex items-center justify-center gap-2 text-xs"
+                  >
+                    <Sparkles className="w-4 h-4 text-emerald-600" />
+                    <span>AI Quality Grading</span>
+                    <span className="text-[9px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold px-1.5 py-0.2 rounded font-mono">
+                      AGMARK
+                    </span>
+                  </Link>
+
+                  <Link
+                    href="/profit-calculator"
+                    className="bg-amber-100 dark:bg-amber-950/80 hover:bg-amber-200 text-amber-900 dark:text-amber-200 font-bold px-4 py-2.5 rounded-xl border border-amber-300 dark:border-amber-700 transition hover:scale-[1.02] flex items-center justify-center gap-2 text-xs"
+                  >
+                    <TrendingUp className="w-4 h-4 text-amber-600" />
+                    <span>Profit Calculator</span>
+                  </Link>
+                </div>
               </div>
 
               {/* Key Highlights */}
@@ -585,17 +646,165 @@ export default function HomePage() {
       </section>
 
       {/* ======================================================== */}
-      {/* 3B. INTERACTIVE DIRECT FARMGATE PROFIT CALCULATOR        */}
+      {/* 3B. INTERACTIVE AGRI-INTELLIGENCE OPERATING SYSTEM HUB  */}
       {/* ======================================================== */}
-      <section id="profit-calculator" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <ProfitCalculator />
+      <section id="ai-agri-hub" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">
+                <Sparkles className="w-4 h-4" />
+                <span>Interactive AI Operating System</span>
+                <span className="bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-mono px-2 py-0.5 rounded font-black">
+                  Live Engine
+                </span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                Live Agricultural Intelligence Suite
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Experience smart logistics corridor pooling, multimodal crop disease diagnostics, commercial quality grading, and direct farmgate ROI.
+              </p>
+            </div>
+
+            {/* Hub Switcher Tabs */}
+            <div className="flex items-center gap-1.5 overflow-x-auto p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+              {[
+                { id: 'LOGISTICS', label: '🚛 Logistics Pooling' },
+                { id: 'DISEASE', label: '🌿 Crop Disease Lens' },
+                { id: 'GRADING', label: '⚖️ Quality Grading' },
+                { id: 'PROFIT', label: '💰 Profit Calculator' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setHomeToolTab(tab.id as any)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-black transition whitespace-nowrap ${
+                    homeToolTab === tab.id
+                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Active Tab View */}
+          <div>
+            {homeToolTab === 'LOGISTICS' && <SmartRoutePlanner />}
+            {homeToolTab === 'DISEASE' && <CropDiseaseScanner />}
+            {homeToolTab === 'GRADING' && (
+              <div className="space-y-4">
+                <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl border border-emerald-300 dark:border-emerald-800 flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                    Inspecting produce against APMC AGMARK commercial specifications using Google Gemini Multimodal Vision.
+                  </span>
+                  <Link href="/crop-grading" className="text-xs font-black text-emerald-700 dark:text-emerald-400 underline">
+                    Open Dedicated Studio &rarr;
+                  </Link>
+                </div>
+                <AIQualityScanner cropName="Tomato" />
+              </div>
+            )}
+            {homeToolTab === 'PROFIT' && <ProfitCalculator />}
+          </div>
+        </div>
       </section>
 
       {/* ======================================================== */}
-      {/* 3C. AI CROP LEAF DISEASE & PEST DIAGNOSTICS SCANNER      */}
+      {/* 3D. SMART LOGISTICS POOLING & AI QUALITY GRADING         */}
       {/* ======================================================== */}
-      <section id="crop-scanner" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <CropDiseaseScanner />
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Logistics Pooling Spotlight Card */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-900 via-slate-900 to-slate-950 p-6 sm:p-8 text-white border border-teal-500/30 shadow-lg flex flex-col justify-between space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="bg-teal-500/20 text-teal-300 border border-teal-400/40 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">
+                  Smart Agro Corridor
+                </span>
+                <span className="text-xs text-teal-200">Save 40%–60%</span>
+              </div>
+              <h3 className="text-2xl font-black tracking-tight">
+                Logistics Pooling &amp; Multi-Stop Routes
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Connect your farm pickup location with commercial buyers in Pune, Mumbai, and Navi Mumbai. Pool truck space with fellow farmers along NH60, NH48, and NH65 to slash freight rates.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-2 bg-white/5 border border-white/10 p-3 rounded-2xl text-center text-xs">
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold uppercase">Solo Fare</span>
+                  <span className="font-bold line-through text-slate-400">₹2,800</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-teal-300 block font-bold uppercase">Pooled Fare</span>
+                  <span className="font-black text-emerald-400">₹1,150</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-teal-300 block font-bold uppercase">Corridors</span>
+                  <span className="font-bold text-white">6 Daily</span>
+                </div>
+              </div>
+
+              <Link
+                href="/logistics"
+                className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-teal-500/20"
+              >
+                <Truck className="w-4 h-4" />
+                <span>Calculate Pooled Route &amp; Savings</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+
+          {/* AI Quality Grading Studio Spotlight Card */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-950 p-6 sm:p-8 text-white border border-emerald-500/30 shadow-lg flex flex-col justify-between space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">
+                  Gemini Vision 2.0
+                </span>
+                <span className="text-xs text-emerald-200">APMC &amp; AGMARK</span>
+              </div>
+              <h3 className="text-2xl font-black tracking-tight">
+                AI Automated Produce Quality Grading
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Scan harvested fruits and vegetables with your phone camera. Gemini Computer Vision instantly computes commercial grades (A+, A, B, C), defect percentage, color uniformity, and fair farmgate valuation.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-2 bg-white/5 border border-white/10 p-3 rounded-2xl text-center text-xs">
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold uppercase">Export Tier</span>
+                  <span className="font-black text-emerald-400">Grade A+</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold uppercase">Defect Margin</span>
+                  <span className="font-bold text-white">&lt;3%</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold uppercase">AI Accuracy</span>
+                  <span className="font-bold text-emerald-400">96.4%</span>
+                </div>
+              </div>
+
+              <Link
+                href="/crop-grading"
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Launch AI Quality Grading Studio</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* ======================================================== */}

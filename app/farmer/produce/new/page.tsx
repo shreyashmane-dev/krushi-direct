@@ -151,10 +151,12 @@ export default function NewProducePage() {
             onApplyPrice={(suggested) => setPricePerKg(suggested)}
           />
 
-          {/* AI Quality Scanner */}
+          {/* AI Quality Scanner with Gemini Multimodal Vision */}
           <AIQualityScanner
             cropName={cropName}
+            externalImageUrl={imageUrl}
             onApplyGrade={(g) => setGrade(g)}
+            onApplyPrice={(suggested) => setPricePerKg(suggested)}
           />
         </div>
 

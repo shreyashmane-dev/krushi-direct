@@ -21,8 +21,12 @@ import {
   Volume2,
   VolumeX,
   AlertCircle,
+  Share2,
+  KeyRound,
 } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n';
+import { getGeminiAuthHeaders } from '@/lib/ai/gemini-key-storage';
+import GeminiKeyModal from '@/components/gemini-key-modal';
 
 interface Message {
   id: string;
@@ -30,6 +34,89 @@ interface Message {
   content: string;
   timestamp: string;
   provider?: string;
+}
+
+function formatInlineMarkdown(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*|₹\d+(?:\.\d+)?(?:\/(?:kg|quintal|crate|tonne))?)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={i} className="font-black text-slate-900 dark:text-white">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    if (part.startsWith('₹')) {
+      return (
+        <span key={i} className="font-black text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/70 px-1.5 py-0.5 rounded font-mono text-[11px] inline-block border border-emerald-200 dark:border-emerald-800/60">
+          {part}
+        </span>
+      );
+    }
+    return part;
+  });
+}
+
+function renderAiMarkdown(content: string) {
+  const lines = content.split('\n');
+  return (
+    <div className="space-y-1.5 leading-relaxed text-xs">
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+        if (!trimmed) return <div key={idx} className="h-1" />;
+
+        // Header ### or ##
+        if (trimmed.startsWith('### ') || trimmed.startsWith('## ') || trimmed.startsWith('# ')) {
+          const text = trimmed.replace(/^#+\s*/, '');
+          return (
+            <h5 key={idx} className="font-black text-xs text-emerald-800 dark:text-emerald-300 mt-2 mb-1 flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3 text-emerald-500" />
+              <span>{formatInlineMarkdown(text)}</span>
+            </h5>
+          );
+        }
+
+        // Bullet point
+        if (trimmed.startsWith('• ') || trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+          const text = trimmed.replace(/^[-•*]\s*/, '');
+          return (
+            <div key={idx} className="flex items-start gap-1.5 pl-1 text-slate-700 dark:text-stone-300">
+              <span className="text-emerald-600 font-bold shrink-0 mt-0.5">&bull;</span>
+              <span>{formatInlineMarkdown(text)}</span>
+            </div>
+          );
+        }
+
+        // Numbered list: 1. 2.
+        const numMatch = trimmed.match(/^(\d+)\.\s*(.+)/);
+        if (numMatch) {
+          return (
+            <div key={idx} className="flex items-start gap-2 pl-1 text-slate-700 dark:text-stone-300">
+              <span className="w-4 h-4 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-mono font-bold flex items-center justify-center shrink-0 mt-0.5">
+                {numMatch[1]}
+              </span>
+              <span>{formatInlineMarkdown(numMatch[2])}</span>
+            </div>
+          );
+        }
+
+        // Callout or quote
+        if (trimmed.startsWith('> ')) {
+          return (
+            <div key={idx} className="border-l-2 border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 p-2 rounded-r-lg text-[11px] font-medium text-emerald-900 dark:text-emerald-200 my-1">
+              {formatInlineMarkdown(trimmed.replace(/^>\s*/, ''))}
+            </div>
+          );
+        }
+
+        return (
+          <p key={idx} className="text-slate-700 dark:text-stone-300">
+            {formatInlineMarkdown(trimmed)}
+          </p>
+        );
+      })}
+    </div>
+  );
 }
 
 const QUICK_PROMPTS = [
@@ -47,6 +134,7 @@ export default function AiChatModal() {
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [language, setLanguage] = useState<'en' | 'mr' | 'hi'>(appLang || 'en');
+  const [keyModalOpen, setKeyModalOpen] = useState(false);
   
   // Voice State
   const [isListening, setIsListening] = useState(false);
@@ -264,6 +352,11 @@ export default function AiChatModal() {
     const textToSend = customQuery || input;
     if (!textToSend.trim() || loading) return;
 
+    if (speakingMessageId && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setSpeakingMessageId(null);
+    }
+
     // Stop voice if still active
     if (isListening && recognitionRef.current) {
       try {
@@ -289,9 +382,10 @@ export default function AiChatModal() {
         content: m.content,
       }));
 
+      const headers = getGeminiAuthHeaders({ 'Content-Type': 'application/json' });
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           messages: chatHistory,
           language,
@@ -392,7 +486,16 @@ export default function AiChatModal() {
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setKeyModalOpen(true)}
+                title="Configure Google Gemini API Key"
+                className="text-[10px] flex items-center gap-1 bg-white/10 hover:bg-white/20 text-emerald-200 px-2 py-1 rounded-xl border border-white/20 font-mono transition"
+              >
+                <KeyRound className="w-3 h-3 text-emerald-300" />
+                <span>AI Key</span>
+              </button>
               <button
                 onClick={clearChat}
                 title="Clear Chat"
@@ -480,13 +583,31 @@ export default function AiChatModal() {
                           : 'bg-emerald-600 text-white font-medium rounded-br-sm'
                       }`}
                     >
-                      <div className="whitespace-pre-wrap">{m.content}</div>
+                      {isAssistant ? (
+                        renderAiMarkdown(m.content)
+                      ) : (
+                        <div className="whitespace-pre-wrap">{m.content}</div>
+                      )}
 
                       {/* Message Actions */}
                       {isAssistant && (
                         <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-stone-700 flex items-center justify-between text-[10px] text-slate-400">
-                          <span className="truncate max-w-[120px]">{m.provider || 'KrushiMitra'}</span>
+                          <span className="truncate max-w-[120px] font-mono text-[9px]">{m.provider || 'KrushiMitra AI'}</span>
                           <div className="flex items-center gap-2">
+                            {/* WhatsApp Share */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const text = `🌱 *KrushiMitra AI Advisory:*\n\n${m.content}\n\n_Generated via KisanDirect_`;
+                                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                              }}
+                              title="Share to WhatsApp"
+                              className="hover:text-emerald-700 dark:hover:text-emerald-400 flex items-center gap-1 transition"
+                            >
+                              <Share2 className="w-3 h-3 text-emerald-600" />
+                              <span>Share</span>
+                            </button>
+
                             {/* Read Aloud Button */}
                             <button
                               type="button"
@@ -618,6 +739,8 @@ export default function AiChatModal() {
           </form>
         </div>
       )}
+
+      <GeminiKeyModal isOpen={keyModalOpen} onClose={() => setKeyModalOpen(false)} />
     </>
   );
 }

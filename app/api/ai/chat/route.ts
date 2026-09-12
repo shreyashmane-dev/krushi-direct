@@ -25,21 +25,23 @@ export async function POST(req: NextRequest) {
     }
 
     const lastUserMessage = messages[messages.length - 1]?.content || '';
+    const customApiKey = req.headers.get('x-gemini-api-key') || '';
     const provider = (process.env.AI_PROVIDER || 'gemini').toLowerCase();
     const apiKey =
+      customApiKey ||
       process.env.AI_API_KEY ||
       process.env.GEMINI_API_KEY ||
       '';
 
-    // 1. Google Gemini Provider (Live Cloud API via gemini-3.6-flash)
-    if (provider === 'gemini' && apiKey) {
+    // 1. Google Gemini Provider (Live Cloud API via gemini-1.5-flash / gemini-2.0-flash)
+    if (apiKey) {
       try {
         const candidateModels = [
-          'gemini-3.6-flash',
-          'gemini-3.5-flash',
-          'gemini-3.1-flash-lite',
-          'gemini-2.5-flash-lite',
-          'gemini-flash-latest',
+          'gemini-1.5-flash',
+          'gemini-2.0-flash',
+          'gemini-1.5-flash-8b',
+          'gemini-1.5-pro',
+          'gemini-2.5-flash',
         ];
 
         // Format conversation history for Gemini multi-turn
