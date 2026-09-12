@@ -31,6 +31,7 @@ import {
   Cpu,
 } from 'lucide-react';
 import GeminiKeyModal from '@/components/gemini-key-modal';
+import PwaNotificationBell from '@/components/pwa-notification-bell';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -121,15 +122,18 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {isMobile && (
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 transition"
-              aria-label="Close menu"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          )}
+          <div className="flex items-center gap-1">
+            {!isMobile && <PwaNotificationBell />}
+            {isMobile && (
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 transition"
+                aria-label="Close menu"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* User Card with BOLD ROLE */}
@@ -329,6 +333,7 @@ export default function Navbar() {
               <strong>{user.role}</strong>
             </span>
           )}
+          <PwaNotificationBell />
           <button
             onClick={() => setKeyModalOpen(true)}
             className="p-2 rounded-xl text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 transition"

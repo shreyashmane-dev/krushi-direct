@@ -43,87 +43,6 @@ import AIQualityScanner from '@/components/ai-quality-scanner';
 import MiddlemanSimulator from '@/components/middleman-simulator';
 import LogisticsCorridorRadar from '@/components/logistics-corridor-radar';
 
-const INITIAL_FEATURED_PRODUCTS = [
-  {
-    id: 'prod-tomato-01',
-    cropName: 'Grade-A Tomato',
-    variety: 'Abhinav Hybrid (Cooking & Salads)',
-    pricePerKg: 18,
-    quantity: 500,
-    unit: 'kg',
-    grade: 'A',
-    isOrganic: true,
-    farmLocation: 'Manchar, Pune',
-    farmer: { user: { name: 'Ramesh Patil' }, rating: 4.9 },
-    images: [{ url: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800' }],
-  },
-  {
-    id: 'prod-onion-02',
-    cropName: 'Nashik Red Onion',
-    variety: 'Garwa Lasalgaon Red (Cured)',
-    pricePerKg: 24,
-    quantity: 1200,
-    unit: 'kg',
-    grade: 'A',
-    isOrganic: false,
-    farmLocation: 'Lasalgaon, Nashik',
-    farmer: { user: { name: 'Suresh Jadhav' }, rating: 4.8 },
-    images: [{ url: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=800' }],
-  },
-  {
-    id: 'prod-mango-07',
-    cropName: 'Alphonso Mango (Hapus)',
-    variety: 'GI-Tagged Straw Ripened',
-    pricePerKg: 140,
-    quantity: 400,
-    unit: 'kg',
-    grade: 'A_PLUS',
-    isOrganic: true,
-    farmLocation: 'Ratnagiri Orchards',
-    farmer: { user: { name: 'Ramesh Patil' }, rating: 4.9 },
-    images: [{ url: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=800' }],
-  },
-  {
-    id: 'prod-potato-03',
-    cropName: 'Satara Table Potato',
-    variety: 'Kufri Jyoti (Firm, Low Sugar)',
-    pricePerKg: 22,
-    quantity: 800,
-    unit: 'kg',
-    grade: 'A',
-    isOrganic: true,
-    farmLocation: 'Koregaon, Satara',
-    farmer: { user: { name: 'Anita Pawar' }, rating: 4.95 },
-    images: [{ url: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800' }],
-  },
-  {
-    id: 'prod-chilli-06',
-    cropName: 'G4 Green Chilli',
-    variety: 'G4 Hot Pungent',
-    pricePerKg: 55,
-    quantity: 300,
-    unit: 'kg',
-    grade: 'A',
-    isOrganic: false,
-    farmLocation: 'Walwa, Sangli',
-    farmer: { user: { name: 'Suresh Jadhav' }, rating: 4.8 },
-    images: [{ url: 'https://images.unsplash.com/photo-1588252303782-cb80119abd6d?w=800' }],
-  },
-  {
-    id: 'prod-wheat-04',
-    cropName: 'Sharbati Wheat',
-    variety: 'MP Sharbati Golden Grain',
-    pricePerKg: 28,
-    quantity: 2500,
-    unit: 'kg',
-    grade: 'A_PLUS',
-    isOrganic: false,
-    farmLocation: 'Rahuri, Ahmednagar',
-    farmer: { user: { name: 'Mahesh Shinde' }, rating: 4.7 },
-    images: [{ url: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800' }],
-  },
-];
-
 const MANDI_BENCHMARKS = [
   { crop: 'Grade-A Tomato', market: 'Pune APMC', mandiPrice: 15, farmgatePrice: 18, retailPrice: 38, unit: 'kg' },
   { crop: 'Nashik Red Onion', market: 'Lasalgaon APMC', mandiPrice: 20, farmgatePrice: 24, retailPrice: 45, unit: 'kg' },
@@ -136,7 +55,8 @@ const MANDI_BENCHMARKS = [
 export default function HomePage() {
   const { user, switchUser } = useAuth();
   const { t, language } = useLanguage();
-  const [featuredProducts, setFeaturedProducts] = useState<any[]>(INITIAL_FEATURED_PRODUCTS);
+  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  const [productsLoading, setProductsLoading] = useState<boolean>(true);
   const [activeRole, setActiveRole] = useState<'FARMER' | 'CONSUMER' | 'RESTAURANT' | 'RETAILER'>('FARMER');
   const [isSwitchingPersona, setIsSwitchingPersona] = useState(false);
   const [selectedEscrowProduct, setSelectedEscrowProduct] = useState<any | null>(null);
@@ -144,6 +64,7 @@ export default function HomePage() {
 
   useEffect(() => {
     async function loadProducts() {
+      setProductsLoading(true);
       try {
         const res = await fetch('/api/products');
         if (res.ok) {
@@ -152,8 +73,10 @@ export default function HomePage() {
             setFeaturedProducts(data.products.slice(0, 6));
           }
         }
-      } catch {
-        // ignore
+      } catch (err) {
+        console.warn('Could not load database products:', err);
+      } finally {
+        setProductsLoading(false);
       }
     }
     loadProducts();
@@ -892,7 +815,19 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {productsLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <div key={n} className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 animate-pulse">
+                <div className="h-44 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+                <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded w-3/4" />
+                <div className="h-4 bg-slate-100 dark:bg-slate-800/60 rounded w-1/2" />
+                <div className="h-10 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredProducts.map((p) => (
             <div
               key={p.id}
@@ -970,6 +905,7 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+        )}
       </section>
 
       {/* ======================================================== */}
