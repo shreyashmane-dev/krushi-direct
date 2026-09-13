@@ -30,6 +30,9 @@ import {
   Cpu,
   Layers,
   Award,
+  Gavel,
+  Satellite,
+  Activity,
 } from 'lucide-react';
 import GeminiKeyModal from '@/components/gemini-key-modal';
 
@@ -62,12 +65,23 @@ export default function Navbar() {
       title: 'Marketplace & Trade',
       items: [
         { href: '/', label: t.home, icon: Home, exact: true },
+        {
+          href: '/auction',
+          label: language === 'mr' ? 'थेट लिलाव कक्ष' : language === 'hi' ? 'लाइव नीलामी फ्लोर' : 'Live Bidding Floor',
+          icon: Gavel,
+          badge: 'LIVE',
+        },
         { href: '/marketplace', label: t.marketplace, icon: ShoppingBag },
+        {
+          href: '/fleet-radar',
+          label: language === 'mr' ? 'कोल्ड-चेन रडार' : language === 'hi' ? 'रीफर फ्लीट रडार' : 'Cold-Chain Fleet Radar',
+          icon: Truck,
+          badge: 'GPS',
+        },
         {
           href: '/logistics',
           label: language === 'mr' ? 'स्मार्ट वाहतूक' : language === 'hi' ? 'स्मार्ट लॉजिस्टिक्स' : 'Smart Reefer Logistics',
-          icon: Truck,
-          badge: 'Live',
+          icon: Activity,
         },
         { href: '/farmer/insights', label: t.priceTrends, icon: TrendingUp },
       ],
@@ -80,6 +94,12 @@ export default function Navbar() {
           label: language === 'mr' ? 'पीक प्रतवारी' : language === 'hi' ? 'फसल ग्रेडिंग' : 'AI Crop Grading',
           icon: Sparkles,
           badge: 'Gemini 2.0',
+        },
+        {
+          href: '/field-sensor',
+          label: language === 'mr' ? 'सॅटेलाइट जमीन रडार' : language === 'hi' ? 'सैटेलाइट सॉइल रडार' : 'Satellite Soil Radar',
+          icon: Satellite,
+          badge: 'NDVI',
         },
         {
           href: '/crop-lens',

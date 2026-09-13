@@ -42,6 +42,7 @@ import SmartRoutePlanner from '@/components/logistics/smart-route-planner';
 import AIQualityScanner from '@/components/ai-quality-scanner';
 import MiddlemanSimulator from '@/components/middleman-simulator';
 import LogisticsCorridorRadar from '@/components/logistics-corridor-radar';
+import CashflowPipeline from '@/components/cashflow-pipeline';
 
 const MANDI_BENCHMARKS = [
   { crop: 'Grade-A Tomato', market: 'Pune APMC', mandiPrice: 15, farmgatePrice: 18, retailPrice: 38, unit: 'kg' },
@@ -618,8 +619,12 @@ export default function HomePage() {
       </section>
 
       {/* ======================================================== */}
-      {/* 3A. INTERACTIVE MIDDLEMAN PROFIT ELIMINATOR CALCULATOR  */}
+      {/* 3A. INTERACTIVE MIDDLEMAN PROFIT ELIMINATOR & CASH PIPELINE */}
       {/* ======================================================== */}
+      <section id="cashflow-pipeline" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <CashflowPipeline />
+      </section>
+
       <section id="roi-simulator" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-20">
         <MiddlemanSimulator />
       </section>

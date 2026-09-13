@@ -19,6 +19,7 @@ import {
   ExternalLink,
   ArrowRight,
   SlidersHorizontal,
+  Gavel,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/context';
 import { DEMO_ACCOUNTS, getRoleDashboardUrl } from '@/lib/auth/demo-users';
@@ -95,13 +96,23 @@ export default function TopNavbar() {
               </span>
             </form>
 
+            {/* Live Bidding Floor Pill (Desktop) */}
+            <Link
+              href="/auction"
+              className="hidden lg:inline-flex items-center gap-1.5 bg-amber-50/80 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-800/60 px-3 py-1.5 rounded-full text-[11px] font-bold text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition shrink-0"
+            >
+              <Gavel className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>Live Bids</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+            </Link>
+
             {/* Live Reefer Logistics Pill (Desktop) */}
             <Link
-              href="/logistics"
+              href="/fleet-radar"
               className="hidden xl:inline-flex items-center gap-1.5 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 px-3 py-1.5 rounded-full text-[11px] font-bold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition shrink-0"
             >
               <Truck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>6 Reefer Corridors Live</span>
+              <span>Cold-Chain Radar</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             </Link>
           </div>

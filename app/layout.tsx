@@ -51,6 +51,7 @@ import TopNavbar from '@/components/top-navbar';
 import { ThemeProvider } from '@/lib/theme-context';
 import { LanguageProvider } from '@/lib/i18n';
 import MobileBottomNav from '@/components/mobile-bottom-nav';
+import KrushiVaniVoiceDock from '@/components/krushi-vani-voice-dock';
 
 export default function RootLayout({
   children,
@@ -75,6 +76,7 @@ export default function RootLayout({
                 <Footer />
               </div>
               <MobileBottomNav />
+              <KrushiVaniVoiceDock />
               <AiChatModal />
               <PwaInstaller />
             </AuthProvider>
